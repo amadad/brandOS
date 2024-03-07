@@ -2,7 +2,7 @@ import os
 import re
 import requests
 from bs4 import BeautifulSoup
-import marvin
+import marvin 
 from pydantic import BaseModel, Field
 
 marvin.settings.openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -55,4 +55,4 @@ bills = marvin.extract(daily_digest_house_text + "\n" + daily_digest_senate_text
 # Print the bills!
 print("Bills:\n")
 for bill in bills:
-	print(f"{bill.number}: {bill.title}\n{bill.summary}\n\n")
+	pprint_messages(f"{bill.number}: {bill.title}\n{bill.summary}\n\n")
