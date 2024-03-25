@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="100px" src="./misc/logo.png" />
+<img width="100px" src="./public/logo.png" />
 
 # 🔦 Intel Outside 
 
