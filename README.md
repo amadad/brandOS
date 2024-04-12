@@ -30,18 +30,18 @@
 
 -----
 
-**BrandOS** is a Python script that utilizes the Anthropic API and Tavily API to monitor, analyze, and suggest actions for a brand to maintain unique differentiation.
+**BrandOS** is a Python script that utilizes the Anthropic API and You Web LLM Search to monitor, analyze, and suggest actions for a brand to maintain unique differentiation. This project is based on [Maestro](https://github.com/Doriandarko/maestro) by [Doriandarko](https://github.com/Doriandarko).
 
 -----
 
 ## 📖 Overview
 
-**BrandOS** contains the code and instructions needed to build a sophisticated brand monitoring and analysis tool that leverages the capabilities of [Anthropic API](https://www.anthropic.com/) and [Tavily API](https://www.tavily.com/). Designed to efficiently break down objectives into sub-tasks, generate prompts for sub-agents, and refine the results into a cohesive final output, this project is an ideal starting point for developers interested in brand management and natural language processing.
+**BrandOS** contains the code and instructions needed to build a sophisticated brand monitoring and analysis tool that leverages the capabilities of [Anthropic API](https://www.anthropic.com/) and [You Web LLM Search](https://api.you.com/). Designed to efficiently break down objectives into sub-tasks, generate prompts for sub-agents, and refine the results into a cohesive final output, this project is an ideal starting point for developers interested in brand management and natural language processing.
 
 ## 🎛️ Features
 
 - Utilizes the Anthropic API for natural language processing and generation
-- Integrates with the Tavily API for QnA search functionality
+- Integrates with the You Web LLM Search API for QnA search functionality
 - Breaks down the objective into sub-tasks using an orchestrator
 - Generates prompts for sub-agents to execute the sub-tasks
 - Refines the sub-task results into a cohesive final output
@@ -53,9 +53,9 @@
 Before running the script, make sure you have the following:
 
 - Python 3.x installed
-- Required Python packages: `os`, `re`, `json`, `dotenv`, `anthropic`, `tavily`, `rich`, `datetime`
+- Required Python packages: `os`, `re`, `json`, `dotenv`, `anthropic`, `rich`, `datetime`
 - Anthropic API key (stored in a `.env` file as `ANTHROPIC_API_KEY`)
-- Tavily API key (stored in a `.env` file as `TAVILY_API_KEY`)
+- You Web LLM Search API key (stored in a `.env` file as `You Web LLM Search_API_KEY`)
 
 ## 🚀 Installation
 
@@ -63,13 +63,13 @@ Before running the script, make sure you have the following:
 
 2. Install the required Python packages by running the following command:
    ```
-   pip install os re json dotenv anthropic tavily rich datetime
+   pip install os re json dotenv anthropic You Web LLM Search rich datetime
    ```
 
-3. Create a `.env` file in the same directory as the script and add your Anthropic and Tavily API keys:
+3. Create a `.env` file in the same directory as the script and add your Anthropic and You Web LLM Search API keys:
    ```
    ANTHROPIC_API_KEY=your_anthropic_api_key
-   TAVILY_API_KEY=your_tavily_api_key
+   You Web LLM Search_API_KEY=your_You Web LLM Search_api_key
    ```
 
 ## 💻 Usage
