@@ -6,13 +6,13 @@
 ### Realtime Brand Monitoring and Analysis
 
 <p>
-<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/yourusername/brandos" />
-<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/yourusername/brandos" />
-<img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/yourusername/brandos" />
-<img alt="GitHub Stars" src="https://img.shields.io/github/stars/yourusername/brandos" />
-<img alt="GitHub Forks" src="https://img.shields.io/github/forks/yourusername/brandos" />
+<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/amadad/brandos" />
+<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/amadad/brandos" />
+<img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/amadad/brandos" />
+<img alt="GitHub Stars" src="https://img.shields.io/github/stars/amadad/brandos" />
+<img alt="GitHub Forks" src="https://img.shields.io/github/forks/amadad/brandos" />
 <img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-<img alt="Twitter" src="https://img.shields.io/twitter/follow/yourusername?style=social" />
+<img alt="Twitter" src="https://img.shields.io/twitter/follow/amadad?style=social" />
 </p>
 </div>
 
