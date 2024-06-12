@@ -66,18 +66,15 @@ def opus_orchestrator(brand_info, previous_results=None, use_search=False):
     return response_text, search_query
 
 def query_web_llm(query):
-    api_key = os.getenv("YOU_API_KEY") # Retrieve the API key from environment variables
+    api_key = os.getenv("YOU_API_KEY")
     headers = {"X-API-Key": api_key}
     params = {"query": query}
     response = requests.get(
         f"https://api.ydc-index.io/rag?query={query}",
         params=params,
         headers=headers,
-    )
-    response.raise_for_status()
-    json_response = response.json()
-    answer = json_response['answer']
-    return answer
+    ).json()
+    return [hit['ai_snippets'] for hit in response['hits']]
 
 def haiku_sub_agent(prompt, search_query=None, previous_haiku_tasks=None, continuation=False):
     if previous_haiku_tasks is None:
