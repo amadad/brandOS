@@ -3,3 +3,4 @@ _archive
 .env
 node_modules
 .next
+llm*
