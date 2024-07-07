@@ -1,9 +1,10 @@
 import requests 
 import time
+import os
 
 endpoint = "https://api.sunoaiapi.com/api/v1/"
 headers = {
-    "api-key": "w/j6JMvmc/fhJOm7CWYu2aih5bZnkKWM",
+    "api-key": os.getenv("SUNO_API_KEY"),
     "content-type": "application/json",
 }
 
