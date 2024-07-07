@@ -4,3 +4,6 @@ _archive
 node_modules
 .next
 llm*
+music/newVideos
+music/temp
+music/__pycache__
