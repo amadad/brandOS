@@ -1,105 +1,43 @@
-<div align="center">
-<img width="100px" src="./public/logo.png" />
+# Coding Agent PRD & Reference Skeleton
 
-# 🔍 BrandOS
+## Overview
+- This repository contains the execution-ready product requirements document for a coding copilot built on the OpenAI Agents SDK and Temporal, plus a lightweight Python code skeleton that expresses key contracts.
+- The code follows the PRD structure: domain models (Change Plan), workflow specification scaffolding, MCP tool contracts, and an orchestrator stub for sequencing Activities.
+- Temporal will provide durable execution in production; the current Python modules stay pure so they can be tested rapidly while real integrations are developed.
 
-### Realtime Brand Monitoring and Analysis
+## Read the PRD
+The full specification lives at `docs/coding-agent-prd.md`. It covers:
+- Goals, scope, target users, and success metrics.
+- System architecture with Agents SDK services, MCP tools, and Temporal workflows.
+- Functional and non-functional requirements, guardrails, data schemas, and rollout phases.
+- Risks, mitigations, evaluation plans, and API sketches for integrating the agent into existing tooling.
 
-<p>
-<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/amadad/brandos" />
-<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/amadad/brandos" />
-<img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/amadad/brandos" />
-<img alt="GitHub Stars" src="https://img.shields.io/github/stars/amadad/brandos" />
-<img alt="GitHub Forks" src="https://img.shields.io/github/forks/amadad/brandos" />
-<img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-<img alt="Twitter" src="https://img.shields.io/twitter/follow/amadad?style=social" />
-</p>
-</div>
+## Code scaffolding
+- `src/coding_agent/models.py` – Pydantic models for planner outputs (`ChangePlan`, `PlannedEdit`).
+- `src/coding_agent/workflow_spec.py` – Pure-Python description of the Temporal workflow Activities, signals, and timeouts.
+- `src/coding_agent/mcp/contracts.py` – Contracts for repo, runner, and code-search MCP tools with guardrail validation.
+- `src/coding_agent/orchestrator.py` – High-level orchestrator stub that sequences Activities and enforces basic guardrails.
+- `src/coding_agent/cli.py` – Demo CLI wiring that exercises the orchestrator with mock Activities.
+- `tests/` – Pytest suite built first (TDD) covering each module.
 
------
+## Run the demo
+```
+uv run python -m coding_agent.cli
+```
 
-<p align="center">
- <a href="#-overview">Overview</a> •
- <a href="#-features">Features</a> •
- <a href="#-prerequisites">Prerequisites</a> •
- <a href="#-installation">Installation</a> •
- <a href="#-usage">Usage</a> •
- <a href="#-functions">Functions</a> •
- <a href="#-license">License</a>
-</p>
+## Run tests
+```
+uv run pytest
+```
 
------
+## Repository layout
+- `docs/` – Documentation and design artifacts (currently the coding agent PRD).
+- `src/` – Python package housing reference contracts and orchestration skeleton.
+- `tests/` – Test cases validating the contracts and guardrails.
+- `LICENSE` – MIT license inherited from the previous project footprint.
 
-**BrandOS** is a Python script that utilizes the Anthropic API and You Web LLM Search to monitor, analyze, and suggest actions for a brand to maintain unique differentiation. This project is based on [Maestro](https://github.com/Doriandarko/maestro) by [Doriandarko](https://github.com/Doriandarko).
+## Contributing
+Keep new design notes or supporting specs in `docs/` and cross-link them from the PRD or this README. When expanding the code, drive each module with tests (`uv run pytest`) and keep production integrations behind injectable interfaces.
 
------
-
-## 📖 Overview
-
-**BrandOS** contains the code and instructions needed to build a sophisticated brand monitoring and analysis tool that leverages the capabilities of [Anthropic API](https://www.anthropic.com/) and [You Web LLM Search](https://api.you.com/). Designed to efficiently break down objectives into sub-tasks, generate prompts for sub-agents, and refine the results into a cohesive final output, this project is an ideal starting point for developers interested in brand management and natural language processing.
-
-## 🎛️ Features
-
-- Utilizes the Anthropic API for natural language processing and generation
-- Integrates with the You Web LLM Search API for QnA search functionality
-- Breaks down the objective into sub-tasks using an orchestrator
-- Generates prompts for sub-agents to execute the sub-tasks
-- Refines the sub-task results into a cohesive final output
-- Provides a list of competitors, keyword search terms to monitor, and suggested actions for the brand
-- Saves the full exchange log to a Markdown file
-
-## 📋 Prerequisites
-
-Before running the script, make sure you have the following:
-
-- Python 3.x installed
-- Required Python packages: `os`, `re`, `json`, `dotenv`, `anthropic`, `rich`, `datetime`
-- Anthropic API key (stored in a `.env` file as `ANTHROPIC_API_KEY`)
-- You Web LLM Search API key (stored in a `.env` file as `You Web LLM Search_API_KEY`)
-
-## 🚀 Installation
-
-1. Clone the repository or download the script file.
-
-2. Install the required Python packages by running the following command:
-   ```
-   pip install os re json dotenv anthropic You Web LLM Search rich datetime
-   ```
-
-3. Create a `.env` file in the same directory as the script and add your Anthropic and You Web LLM Search API keys:
-   ```
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   You Web LLM Search_API_KEY=your_You Web LLM Search_api_key
-   ```
-
-## 💻 Usage
-
-1. Run the script using the following command:
-   ```
-   python brandos.py
-   ```
-
-2. When prompted, enter the following information about the brand:
-   - Brand URL
-   - Brand mission
-   - Brand vision
-   - Brand values
-
-3. Choose whether you want to use search functionality by entering 'y' or 'n'.
-
-4. The script will start the process of monitoring, analyzing, and suggesting actions for the brand. It will break down the objective into sub-tasks, generate prompts for sub-agents, and refine the results.
-
-5. The final output will be displayed in the console, including a list of competitors, keyword search terms to monitor, and suggested actions for the brand.
-
-6. The full exchange log will be saved to a Markdown file with a timestamp and the sanitized brand name.
-
-## 🧩 Functions
-
-- `calculate_subagent_cost(model, input_tokens, output_tokens)`: Calculates the cost of a sub-agent based on the model and token usage.
-- `opus_orchestrator(brand_info, previous_results=None, use_search=False)`: Calls the orchestrator to break down the objective into sub-tasks and generate prompts for sub-agents.
-- `haiku_sub_agent(prompt, search_query=None, previous_haiku_tasks=None, continuation=False)`: Calls the sub-agent to execute a sub-task based on the provided prompt and search query.
-- `opus_refine(brand_info, sub_task_results, filename, continuation=False)`: Calls Opus to review and refine the sub-task results into a cohesive final output.
-
-## 📄 License
-
-**BrandOS** is open-source and licensed under [MIT](https://opensource.org/licenses/MIT).
+## License
+Released under the MIT License. See `LICENSE` for details.

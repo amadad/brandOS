@@ -1,3 +1,0 @@
-[submodule "llm-finetuning"]
-	path = llm-finetuning
-	url = https://github.com/modal-labs/llm-finetuning.git
