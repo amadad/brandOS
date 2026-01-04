@@ -1,0 +1,16 @@
+[
+  {
+    "source": "press",
+    "headline": "GiveCare expands remote monitoring pilot with HealthCo",
+    "impact": "high",
+    "url": "https://press.givecare.example/remote-monitoring-pilot",
+    "summary": "HealthCo selected GiveCare's RPM platform for a 1,200-patient expansion across home health agencies."
+  },
+  {
+    "source": "blog",
+    "headline": "GiveCare releases fall 2025 product roadmap",
+    "impact": "medium",
+    "url": "https://blog.givecare.example/fall-2025-roadmap",
+    "summary": "Highlights include AI triage recommendations, caregiver messaging, and integrations with PointClickCare."
+  }
+]

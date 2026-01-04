@@ -4,6 +4,7 @@
 - Ship a coding copilot that plans, edits, tests, and opens PRs across your repositories.
 - Lean on the OpenAI Agents SDK for orchestration, tooling, guardrails, tracing, and multi-agent handoffs.
 - Run end-to-end tasks as Temporal Workflows so long, failure-prone execution (clones, builds, tests, human approvals) is durable and horizontally scalable.
+- Extend the platform to generate daily brand intelligence reports via email using the same durable runtime and agent cohort.
 
 ## 1) Goals (V1)
 - Deliver 10 or more merged PRs per week with greater than 70 percent acceptance and fewer than two reviewer cycles per PR.
@@ -26,6 +27,7 @@
 - Throughput: PRs per week, time to first PR, time in review.
 - Reliability: number of resumed runs after failures via Temporal, cumulative human-in-loop wait time, durable timers enable pauses for hours or days without losing state.
 - Safety: count of blocked dangerous operations and guardrail violations caught by Agents SDK guardrails and tracing.
+- Brand insights: daily report delivery rate, open rate, accuracy of competitive highlights.
 
 ## 4) High-level architecture
 [Web/API] --> [Agents Service (Python)]
@@ -52,6 +54,10 @@
    - Plan upgrade, change files across N modules, run targeted tests, open batched PRs.
 4. Refactor with guarantees
    - Generate transformation plan, apply minimal diffs, run contract tests, open PR.
+5. Daily brand report
+   - Schedule a Temporal Cron Workflow per brand.
+   - Activities: gather brand and competitor signals (search/MCP/http), synthesize insights, summarize into email-safe Markdown, send via email provider with guardrails around sensitive outputs.
+   - Capture delivery metrics and store report artifacts for auditing.
 
 ## 6) Functional requirements
 - FR1 Task intake: REST and CLI endpoints create tasks with repo, base branch, ticket URL, and constraints.
@@ -62,6 +68,7 @@
 - FR6 Human-in-loop: Temporal timers and signals wait for review and resume on comment callbacks.
 - FR7 Guardrails: restrict writes to allowed paths, enforce "tests changed if code changed," and require green CI before PR completion using Agents SDK guardrails and schema checks.
 - FR8 Multi-repo scope: run against a single repo per task in V1 with multi-repo support gated behind a feature flag for V2.
+- FR9 Brand reporting: ingest brand signals (news, social, owned channels), synthesize daily email reports, and deliver via transactional email service with tracking.
 
 ## 7) Non-functional requirements
 - Reliability: recover from crashes or redeploys, keep Activities idempotent, and maintain deterministic Workflow code by keeping side-effectful work in Activities.
@@ -78,6 +85,7 @@
 - CoderAgent: applies diffs, writes tests, and respects constraints.
 - CriticAgent: performs self-review for side effects, missing tests, or policy violations.
 - FixerAgent: incorporates CI or reviewer feedback.
+- ReporterAgent: aggregates brand signals, drafts email summaries, and coordinates delivery guardrails.
 - Use handoffs between agents to minimize scope per agent and capture every step in tracing.
 
 ## 9) Tools (via MCP and native function tools)
@@ -86,6 +94,7 @@
 - code-search: provide semantic and AST search over indexed code.
 - http: fetch documentation or changelog references.
 - secrets: broker scoped credentials.
+- email: transactional email sender with templates, rate limits, and delivery receipts.
 - MCP defines Resources (context) and Tools (functions) over JSON-RPC with progress, cancellation, and logging.
 
 ## 10) Temporal design
@@ -98,6 +107,7 @@
   5. OpenPR (create PR and description)
   6. AwaitReview (sleep with timeout and resume on webhook signal)
   7. AddressFeedback (loop until objectives met or policy stops execution)
+- Supplemental Cron Workflow: `BrandReportWorkflow(brand_id, recipients)` running on daily cadence with Activities GatherSignals, SummarizeInsights, ComposeEmail, SendEmail, RecordMetrics.
 - Integration note: each agent invocation executes through an Activity while the orchestration remains in the Workflow, delivering durability and scale without custom plumbing.
 
 ## 11) Data and schemas
@@ -124,12 +134,30 @@
 - Rollback plan.
 - Links to evidence such as CI runs.
 
+**Brand report (ReporterAgent output)**
+```json
+{
+  "brand_id": "br-42",
+  "date": "2025-01-15",
+  "highlights": [
+    {"title": "Competitor launches loyalty program", "impact": "High", "summary": "..."},
+    {"title": "Social sentiment dips 5%", "impact": "Medium", "summary": "..."}
+  ],
+  "metrics": {
+    "share_of_voice": 0.34,
+    "sentiment_delta": -0.05
+  },
+  "actions": ["Review competitor offer", "Launch positive sentiment campaign"]
+}
+```
+
 ## 12) Guardrails and policy
 - Enforce write constraints: only allowed paths and no secrets in diffs.
 - Require tests to change whenever code changes and block PR completion until CI is green.
 - Block dangerous operations (networking, infrastructure scripts) unless a policy flag explicitly allows them.
 - Maintain MCP hygiene: version pinning, SLSA provenance when available, internal registry mirrors, and periodic audits in response to recent malicious MCP server incidents.
 - Agents SDK guardrails validate inputs and outputs for plans and diffs before allowing progression.
+- Email guardrails ensure PII redaction, ban on disallowed topics, and validation of recipient allowlists before send.
 
 ## 13) UI (minimal)
 - Task detail view: status, current step, logs, planned edits, live CI status.
@@ -140,6 +168,7 @@
 - Offline: maintain a golden set of 10 to 20 tickets and measure pass-at-merge and reviewer cycles.
 - Online: schedule canary tasks each week and compare lead time versus developer baseline.
 - Reliability: inject forced failures and confirm Workflows resume at the last successful step, exercising Temporal durability guarantees.
+- Email reporting: track delivery/open metrics, validate content accuracy against curated truth sets.
 
 ## 15) Rollout plan (phases)
 1. MVP (single repo): implement the Plan -> Edit -> Test -> PR loop on a service with strong test coverage.
@@ -151,6 +180,8 @@
 - CI: GitHub Actions or GitLab CI through webhooks and status checks.
 - Temporal: OSS server, UI, and Postgres deployed on Kubernetes or VMs.
 - Observability: combine Agents SDK tracing, Temporal UI visibility, and OpenTelemetry export.
+- Email: transactional provider (e.g., SendGrid, Postmark) or SMTP relay with delivery receipts logged to the run.
+- Resend support: MVP can use Resend API for email delivery with API-key guardrails and delivery metrics collection.
 
 ## 17) Risks and mitigations
 - Third-party MCP servers and supply chain exposure: pin versions, verify sources, audit regularly, block egress, and prefer first-party or self-built servers.

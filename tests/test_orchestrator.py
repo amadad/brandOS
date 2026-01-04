@@ -9,29 +9,12 @@ from coding_agent.orchestrator import (
 )
 
 
-def make_plan_with_tests() -> ChangePlan:
-    return ChangePlan.model_validate(
-        {
-            "ticket_id": "ENG-1423",
-            "goal": "Add retries to payment client",
-            "constraints": ["no API change"],
-            "edits": [
-                {"path": "pkg/payments/client.py", "intent": "wrap calls"},
-                {"path": "tests/test_payments_client.py", "intent": "add tests"},
-            ],
-            "risk": ["timeout propagation"],
-            "checks": ["pytest -k payments", "lint"],
-        }
-    )
-
-
-def test_orchestrator_runs_happy_path_in_order():
+def test_orchestrator_runs_happy_path_in_order(feature_plan: ChangePlan):
     calls = []
-    plan = make_plan_with_tests()
-    task = TaskInput(ticket_id="ENG-1423", repository="git@example/repo", base_branch="main")
+    task = TaskInput(ticket_id=feature_plan.ticket_id, repository="git@example/repo", base_branch="main")
 
     orchestrator = CodingTaskOrchestrator(
-        plan_changes=lambda t: calls.append("plan") or plan,
+        plan_changes=lambda t: calls.append("plan") or feature_plan,
         fetch_context=lambda t, p: calls.append("fetch") or {"files": []},
         apply_diffs=lambda t, p, ctx: calls.append("apply") or "commit-sha",
         run_ci=lambda t, plan, commit: calls.append("ci") or CIResult(passed=True, url="ci"),

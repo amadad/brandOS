@@ -1,0 +1,16 @@
+[
+  {
+    "source": "press",
+    "headline": "Barbarian launches immersive campaign for QSR brand",
+    "impact": "high",
+    "url": "https://press.barbarian.example/immersive-campaign",
+    "summary": "The agency rolled out a multi-platform activation featuring AR ordering and influencer takeovers."
+  },
+  {
+    "source": "blog",
+    "headline": "Barbarian shares 2025 innovation playbook",
+    "impact": "medium",
+    "url": "https://www.barbarian.com/blog/2025-innovation-playbook",
+    "summary": "Highlights client wins, new creative technology partnerships, and digital CX best practices."
+  }
+]

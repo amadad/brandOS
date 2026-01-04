@@ -1,0 +1,8 @@
+[
+  {
+    "source": "fallback",
+    "headline": "No verified signals available",
+    "impact": "low",
+    "summary": "The automated collectors did not find relevant updates in the last sampling window."
+  }
+]

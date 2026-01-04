@@ -6,4 +6,7 @@ node_modules
 llm*
 music/newVideos
 music/temp
-music/__pycache__
+__pycache__/
+*.pyc
+.DS_Store
+data/

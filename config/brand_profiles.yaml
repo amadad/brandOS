@@ -1,0 +1,38 @@
+# Brand profiles used for relevance and summarization heuristics
+# Configure keywords, competitors, and stop phrases to keep daily reports on-topic.
+
+givecare:
+  company_summary: |
+    GiveCare delivers remote patient monitoring and telehealth workflow software for home health agencies and care teams.
+  keywords:
+    - givecare
+    - "give care"
+    - remote patient monitoring
+    - telehealth
+    - home health
+  competitors:
+    - care.com
+    - pointclickcare
+    - aledade
+  stop_phrases:
+    - bosch
+    - turkmenportal
+    - electronics store
+
+barbarian:
+  company_summary: |
+    Barbarian is a creative and innovation agency focused on brand campaigns, activations, and digital customer experiences.
+  keywords:
+    - barbarian
+    - "barbarian agency"
+    - digital transformation
+    - creative agency
+    - marketing campaign
+  competitors:
+    - razorfish
+    - huge
+    - droga5
+  stop_phrases:
+    - gaming clan
+    - dungeons
+    - fantasy novel
