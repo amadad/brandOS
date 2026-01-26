@@ -250,14 +250,28 @@ brandos config profiles          # Show current configuration
 ```
 src/brand_os/
 ├── cli.py              # Main CLI entry point
+├── loop.py             # Autonomous execution daemon
+├── loop_cli.py         # Loop/decision/policy CLI
 ├── core/               # Shared utilities
 │   ├── brands.py       # Brand loading and discovery
 │   ├── config.py       # Configuration management
-│   ├── evaluation.py   # Evaluation engine
-│   ├── identity.py     # Identity schemas
-│   ├── llm.py          # LLM interface (Gemini, OpenAI, Anthropic)
-│   ├── signals.py      # Signal processing
+│   ├── decision.py     # Decision logging + audit trail
+│   ├── policy.py       # Policy engine + guardrails
+│   ├── learning.py     # Outcome tracking + metrics
+│   ├── llm.py          # LLM interface (Gemini, Anthropic)
 │   └── storage.py      # Storage paths
+│
+├── agents/             # Specialized AI agents
+│   ├── base.py         # Agent protocol + BaseAgent
+│   ├── market.py       # Market analyst (LLM-powered)
+│   └── threat.py       # Threat assessor
+│
+├── actions/            # Execution targets
+│   ├── write.py        # File output (audit trail)
+│   └── notify.py       # Slack/email notifications
+│
+├── workflows/          # Approval workflows
+│   └── approval.py     # State machine for decisions
 │
 ├── adapters/           # Format converters
 │   ├── brandos.py      # Internal format
@@ -280,10 +294,13 @@ src/brand_os/
 │   ├── outliers.py     # Outlier detection
 │   └── scrapers/       # Platform scrapers
 │
-├── signals/            # Market monitoring
+├── signals/            # Signal ingestion
+│   ├── schema.py       # Unified Signal model
 │   ├── relevance.py    # Relevance scoring
 │   ├── history.py      # Signal history
-│   └── providers/      # Signal sources
+│   └── sources/        # Data sources for loop
+│       ├── rss.py      # RSS/Atom feeds
+│       └── reddit.py   # Reddit posts
 │
 ├── plan/               # Marketing planning
 │   ├── stages/         # Planning stages

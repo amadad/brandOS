@@ -70,7 +70,7 @@ Signals → AgentContext → Agent.process() → AgentResult → Decisions
 - `THREAT_RESPONSE`
 - `ALERT_ESCALATION`
 
-### Content Producer (`content-producer`)
+### Content Producer (`content-producer`) — *Planned*
 
 **Purpose**: Generate brand-aligned content based on analysis.
 
@@ -86,6 +86,8 @@ Signals → AgentContext → Agent.process() → AgentResult → Decisions
 **Decision Types**:
 - `CONTENT_PUBLISH`
 - `CONTENT_SCHEDULE`
+
+> **Status**: Planned. Content production currently handled via `brandos produce` CLI.
 
 ## AgentContext
 
@@ -162,44 +164,99 @@ When agents propose conflicting decisions:
 2. More specific decision type wins
 3. Human reviewer decides ties
 
-## CLI Usage
+## Running Agents
+
+Agents are orchestrated by the autonomous loop rather than a dedicated CLI. The loop fetches signals, runs agents, and processes decisions according to policy.
 
 ```bash
-# Run single agent
-brandos agent run market-analyst --brand acme
+# Run one cycle (test mode)
+brandos loop test acme
 
-# Run all agents on latest signals
-brandos agent run-all --brand acme
+# Start continuous loop
+brandos loop start --brand acme
 
-# Interactive agent chat
-brandos agent chat market-analyst --brand acme
+# View agent-proposed decisions
+brandos decision list --brand acme
+
+# Review pending decisions
+brandos decision pending
+```
+
+### Direct Agent Usage (Programmatic)
+
+```python
+from brand_os.agents.market import MarketAnalyst
+from brand_os.agents.base import AgentContext
+
+analyst = MarketAnalyst()
+context = AgentContext(brand="acme", signals=signals)
+result = await analyst.process(context)
+
+print(result.summary)
+for decision in result.decisions:
+    print(f"{decision.type}: {decision.rationale}")
 ```
 
 ## Implementation Notes
 
-### Using PydanticAI (Recommended)
+### Creating a New Agent
+
+Extend `BaseAgent` and implement the abstract methods:
 
 ```python
-from pydantic_ai import Agent
+from brand_os.agents.base import AgentContext, BaseAgent
+from brand_os.core.decision import Decision, DecisionType
+from brand_os.core.llm import complete_json
 
-market_agent = Agent(
-    'anthropic:claude-sonnet-4-20250514',
-    system_prompt="You are a market analyst...",
-    result_type=MarketAnalysis
-)
+class MyAgent(BaseAgent):
+    @property
+    def agent_id(self) -> str:
+        return "my-agent"
 
-result = await market_agent.run(context.model_dump_json())
+    @property
+    def description(self) -> str:
+        return "Description of what this agent does"
+
+    @property
+    def decision_types(self) -> list[DecisionType]:
+        return [DecisionType.SIGNAL_ACTION]
+
+    async def _analyze(self, context: AgentContext) -> dict[str, Any]:
+        # Use LLM for analysis
+        result = complete_json(
+            prompt=f"Analyze: {context.signals}",
+            system="You are an analyst...",
+            default={"summary": "", "confidence": 0.5},
+        )
+        return result
+
+    async def _propose_decisions(
+        self, context: AgentContext, analysis: dict[str, Any]
+    ) -> list[Decision]:
+        # Generate decisions based on analysis
+        return [
+            self._create_decision(
+                decision_type=DecisionType.SIGNAL_ACTION,
+                brand=context.brand,
+                proposal={"action": "..."},
+                rationale="...",
+                confidence=analysis.get("confidence", 0.5),
+            )
+        ]
 ```
 
-### Using Direct LLM Calls
+### LLM Interface
+
+The `complete_json` function handles JSON extraction from LLM responses:
 
 ```python
 from brand_os.core.llm import complete_json
 
-analysis = await complete_json(
+analysis = complete_json(
     prompt=f"Analyze these signals: {signals}",
+    system="You are a market analyst. Return valid JSON.",
     default={"trends": [], "opportunities": []},
-    model="gemini-2.0-flash"
+    model="gemini-2.0-flash"  # optional, uses default
 )
 ```
 
@@ -207,6 +264,7 @@ analysis = await complete_json(
 
 Planned additions:
 
+- **Content Producer**: Generate brand-aligned content from analysis (in progress)
 - **Supply Chain Monitor**: Track vendor/logistics signals
 - **Budget Optimizer**: Allocate resources based on performance
 - **Compliance Checker**: Monitor regulatory requirements

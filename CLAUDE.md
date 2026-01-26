@@ -13,22 +13,35 @@ src/brand_os/
 ├── cli.py              # Main CLI entry (Typer)
 ├── cli_utils.py        # Output formatting helpers
 ├── loop.py             # Autonomous execution daemon
-├── loop_cli.py         # Loop/decision/policy CLI commands
+├── loop_cli.py         # Loop/decision/policy/learn CLI commands
 ├── core/               # Shared utilities
 │   ├── brands.py       # Brand config loading
 │   ├── config.py       # App configuration
 │   ├── decision.py     # Decision logging + audit trail
 │   ├── policy.py       # Policy engine + guardrails
-│   ├── llm.py          # LLM interface
+│   ├── learning.py     # Outcome tracking + self-improvement
+│   ├── llm.py          # LLM interface (Gemini, Anthropic)
 │   ├── signals.py      # Signal utilities
 │   └── storage.py      # Storage paths
 ├── signals/            # Signal ingestion pipeline
-│   └── schema.py       # Unified Signal model
+│   ├── schema.py       # Unified Signal model
+│   ├── cli.py          # Signals CLI commands
+│   ├── relevance.py    # Relevance scoring
+│   ├── history.py      # Signal history storage
+│   ├── providers/      # Legacy signal providers
+│   │   └── google_news.py
+│   └── sources/        # Loop data sources
+│       ├── rss.py      # RSS/Atom feed fetcher
+│       ├── reddit.py   # Reddit signal source
+│       └── reddit_discover.py  # Subreddit discovery
+├── actions/            # Execution targets
+│   ├── write.py        # File output (audit trail)
+│   └── notify.py       # Slack/email notifications
 ├── workflows/          # Approval workflows
 │   └── approval.py     # State machine for decisions
 ├── agents/             # Specialized AI agents
 │   ├── base.py         # Base Agent protocol
-│   ├── market.py       # Market analyst
+│   ├── market.py       # Market analyst (LLM-powered)
 │   └── threat.py       # Threat assessor
 ├── persona/            # Persona management
 ├── intel/              # Competitive intelligence
@@ -40,7 +53,7 @@ src/brand_os/
 brands/                 # Brand configurations
 ├── _template/          # Default template
 └── <brand>/
-    ├── brand.yml       # Core config (always loaded)
+    ├── brand.yml       # Core config + policy
     ├── rubric.yml      # Evaluation criteria
     ├── references/     # Detailed docs (loaded as needed)
     └── assets/         # Logos, templates
@@ -98,20 +111,47 @@ When multiple agents run concurrently:
 - Use `git add <specific-files>` not `git add .`
 - Scope commits to own work only
 
+## Signal Sources
+
+The loop fetches signals from multiple sources:
+
+| Source | File | API Key Required |
+|--------|------|------------------|
+| RSS/Atom feeds | `signals/sources/rss.py` | No |
+| Reddit | `signals/sources/reddit.py` | No |
+| Subreddit discovery | `signals/sources/reddit_discover.py` | No (LLM optional) |
+
+Configure sources in `brand.yml`:
+
+```yaml
+keywords: [AI, automation]      # Filter signals
+feeds: []                       # Custom RSS (uses defaults if empty)
+subreddits: []                  # Custom subreddits (auto-discovered if empty)
+industry: "B2B SaaS"            # For subreddit discovery
+target_audience: "CTOs"         # For subreddit discovery
+```
+
+```bash
+# Discover subreddits for a brand
+brandos signals discover-subreddits --brand acme
+brandos signals discover-subreddits --industry "B2B SaaS" --query "automation"
+```
+
 ## Signal Processing
 
 All external data normalized to Signal schema before processing:
 
 ```python
-from brand_os.signals.schema import Signal
+from brand_os.signals.schema import Signal, SignalSource, SignalType
 
 signal = Signal(
-    source="news",
+    source=SignalSource.NEWS,
+    signal_type=SignalType.NEWS,
     brand="acme",
-    signal_type="competitor_mention",
+    title="...",
     content="...",
     relevance_score=0.8,
-    urgency="medium",
+    urgency=Urgency.MEDIUM,
 )
 ```
 
@@ -184,6 +224,34 @@ brandos decision pending                    # Quick view of items needing review
 brandos decision approve <id> --reason "LGTM"
 brandos decision reject <id> --reason "Too risky"
 ```
+
+## Learning & Self-Improvement
+
+The system tracks decision outcomes to improve over time:
+
+```python
+from brand_os.core.learning import log_outcome, get_learning_tracker
+
+# Automatically logged when decisions are executed/rejected
+log_outcome(decision)
+
+# Get metrics
+tracker = get_learning_tracker()
+metrics = tracker.compute_metrics("acme", days=30)
+recommendations = tracker.get_recommendations("acme")
+```
+
+```bash
+# CLI commands
+brandos learn metrics acme --days 30
+brandos learn recommendations acme
+```
+
+Metrics tracked:
+- Approval/rejection rates by decision type
+- Confidence calibration (approved vs rejected avg)
+- Auto-execution rate
+- Success patterns by decision type
 
 ## Guardrails
 
