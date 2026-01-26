@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.llm import complete_json
 
 
@@ -14,7 +14,7 @@ class BrandReport(BaseModel):
     """Brand intelligence report."""
 
     brand: str
-    report_date: str = Field(default_factory=lambda: datetime.utcnow().isoformat()[:10])
+    report_date: str = Field(default_factory=lambda: utc_now().isoformat()[:10])
     overview: str = ""
     highlights: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)

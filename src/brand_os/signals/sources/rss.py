@@ -6,10 +6,13 @@ Zero cost, no API keys, no rate limits. Works immediately.
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import datetime
 from typing import Any
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 from brand_os.signals.schema import Signal, SignalSource, SignalType, Urgency
 
@@ -59,7 +62,7 @@ class RSSSource:
                         signals.append(signal)
                 except Exception as e:
                     # Log but don't fail the whole batch
-                    print(f"RSS fetch error for {feed_url}: {e}")
+                    logger.warning("RSS fetch error for %s: %s", feed_url, e)
 
         return signals
 
@@ -125,7 +128,7 @@ class RSSSource:
     def _item_to_signal(self, item: dict, brand: str, feed_url: str) -> Signal:
         """Convert RSS item to Signal."""
         # Generate stable ID from URL
-        content_hash = hashlib.md5(
+        content_hash = hashlib.sha256(
             (item.get("link", "") + item.get("title", "")).encode()
         ).hexdigest()[:12]
 

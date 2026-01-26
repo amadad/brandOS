@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
 
 
@@ -43,8 +44,8 @@ class Decision(BaseModel):
     """A logged decision from an agent."""
 
     id: str = Field(default_factory=lambda: uuid4().hex[:12])
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     # Classification
     type: DecisionType
@@ -90,7 +91,7 @@ class DecisionLog:
 
     def log(self, decision: Decision) -> Decision:
         """Log a new decision."""
-        decision.updated_at = datetime.utcnow()
+        decision.updated_at = utc_now()
         log_file = self._get_log_file(decision.brand)
 
         with log_file.open("a") as f:
@@ -100,7 +101,7 @@ class DecisionLog:
 
     def update(self, decision: Decision) -> Decision:
         """Update an existing decision by rewriting the log."""
-        decision.updated_at = datetime.utcnow()
+        decision.updated_at = utc_now()
         log_file = self._get_log_file(decision.brand)
 
         if not log_file.exists():

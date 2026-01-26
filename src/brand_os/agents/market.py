@@ -6,7 +6,7 @@ from typing import Any
 
 from brand_os.agents.base import AgentContext, BaseAgent
 from brand_os.core.decision import Decision, DecisionType
-from brand_os.core.llm import complete_json
+from brand_os.core.llm import acomplete_json
 
 
 ANALYSIS_SYSTEM = """You are a market analyst for brand intelligence.
@@ -83,7 +83,7 @@ class MarketAnalyst(BaseAgent):
             signals_text=signals_text,
         )
 
-        result = complete_json(
+        result = await acomplete_json(
             prompt=prompt,
             system=ANALYSIS_SYSTEM,
             default={
@@ -115,7 +115,7 @@ class MarketAnalyst(BaseAgent):
                         "trend": trend,
                         "recommended_changes": [],
                     },
-                    rationale=f"Market trend detected: {trend.get('description', 'N/A')}",
+                    rationale=f"Market trend detected: {trend.get('topic', 'N/A')} ({trend.get('direction', '?')}) - {trend.get('evidence', '')}",
                     confidence=analysis.get("confidence", 0.5),
                     signals_used=[s.id for s in context.signals[:5]],
                 )

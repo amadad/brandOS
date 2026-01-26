@@ -6,9 +6,9 @@ Falls back to manual state management if statemachine not installed.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Callable
 
+from brand_os.core.config import utc_now
 from brand_os.core.decision import (
     Decision,
     DecisionStatus,
@@ -79,7 +79,7 @@ if STATEMACHINE_AVAILABLE:
             self.decision.status = DecisionStatus.APPROVED
             self.decision.reviewer = reviewer
             self.decision.review_reason = reason
-            self.decision.reviewed_at = datetime.utcnow()
+            self.decision.reviewed_at = utc_now()
             self._save()
             self._notify(f"Decision approved by {reviewer}")
 
@@ -88,14 +88,14 @@ if STATEMACHINE_AVAILABLE:
             self.decision.status = DecisionStatus.REJECTED
             self.decision.reviewer = reviewer
             self.decision.review_reason = reason
-            self.decision.reviewed_at = datetime.utcnow()
+            self.decision.reviewed_at = utc_now()
             self._save()
             self._notify(f"Decision rejected by {reviewer}: {reason}")
 
         def on_enter_executed(self, outcome: dict[str, Any] | None = None) -> None:
             """Called when decision is executed."""
             self.decision.status = DecisionStatus.EXECUTED
-            self.decision.executed_at = datetime.utcnow()
+            self.decision.executed_at = utc_now()
             self.decision.outcome = outcome
             self._save()
 
@@ -139,7 +139,7 @@ else:
                     f"Invalid transition: {self.decision.status} -> {new_status}"
                 )
             self.decision.status = new_status
-            self.decision.updated_at = datetime.utcnow()
+            self.decision.updated_at = utc_now()
             get_decision_log().update(self.decision)
 
         def submit(self) -> None:
@@ -148,17 +148,17 @@ else:
         def approve(self, reviewer: str = "unknown", reason: str = "") -> None:
             self.decision.reviewer = reviewer
             self.decision.review_reason = reason
-            self.decision.reviewed_at = datetime.utcnow()
+            self.decision.reviewed_at = utc_now()
             self._transition(DecisionStatus.APPROVED)
 
         def reject(self, reviewer: str = "unknown", reason: str = "") -> None:
             self.decision.reviewer = reviewer
             self.decision.review_reason = reason
-            self.decision.reviewed_at = datetime.utcnow()
+            self.decision.reviewed_at = utc_now()
             self._transition(DecisionStatus.REJECTED)
 
         def execute(self, outcome: dict[str, Any] | None = None) -> None:
-            self.decision.executed_at = datetime.utcnow()
+            self.decision.executed_at = utc_now()
             self.decision.outcome = outcome
             self._transition(DecisionStatus.EXECUTED)
 

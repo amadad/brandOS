@@ -13,6 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.decision import Decision, DecisionStatus, DecisionType
 
 
@@ -99,7 +100,7 @@ class PolicyEvaluation(BaseModel):
     verdict: PolicyVerdict
     rule_matched: str | None = None  # Which rule determined the verdict
     reasons: list[str] = Field(default_factory=list)  # Why this verdict
-    evaluated_at: datetime = Field(default_factory=datetime.utcnow)
+    evaluated_at: datetime = Field(default_factory=utc_now)
 
     # For ESCALATE verdicts
     escalation_priority: str = "normal"  # low, normal, high, critical
@@ -345,12 +346,12 @@ class PolicyEngine:
         cooldown_minutes: int,
     ) -> str | None:
         """Check if cooldown period has passed since last similar decision."""
-        cutoff = datetime.utcnow() - timedelta(minutes=cooldown_minutes)
+        cutoff = utc_now() - timedelta(minutes=cooldown_minutes)
 
         for r in recent:
             if r.type == decision.type and r.created_at > cutoff:
                 if r.status in (DecisionStatus.EXECUTED, DecisionStatus.APPROVED):
-                    remaining = (r.created_at + timedelta(minutes=cooldown_minutes)) - datetime.utcnow()
+                    remaining = (r.created_at + timedelta(minutes=cooldown_minutes)) - utc_now()
                     return f"Cooldown active: {remaining.seconds // 60}m remaining"
 
         return None
@@ -362,7 +363,7 @@ class PolicyEngine:
         minutes: int,
     ) -> int:
         """Count recent decisions of the same type."""
-        cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+        cutoff = utc_now() - timedelta(minutes=minutes)
         return sum(
             1 for r in recent
             if r.type == decision.type

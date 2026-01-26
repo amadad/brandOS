@@ -19,6 +19,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
 from brand_os.core.decision import Decision, DecisionStatus, DecisionType
 
@@ -47,7 +48,7 @@ class Outcome(BaseModel):
     feedback_notes: str | None = None
 
     # Timing
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
     time_to_decision_seconds: int | None = None
 
 
@@ -140,7 +141,7 @@ class LearningTracker:
         if not log_file.exists():
             return []
 
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = utc_now() - timedelta(days=days)
         outcomes: list[Outcome] = []
 
         for line in log_file.read_text().strip().split("\n"):
@@ -167,8 +168,8 @@ class LearningTracker:
 
         if not outcomes:
             return LearningMetrics(
-                period_start=datetime.utcnow() - timedelta(days=days),
-                period_end=datetime.utcnow(),
+                period_start=utc_now() - timedelta(days=days),
+                period_end=utc_now(),
                 brand=brand,
             )
 

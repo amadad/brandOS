@@ -9,10 +9,16 @@ Find relevant subreddits based on:
 from __future__ import annotations
 
 import json
+import logging
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+
+from brand_os.core.config import utc_now
+
+logger = logging.getLogger(__name__)
 
 from brand_os.core.llm import complete_json
 
@@ -87,7 +93,7 @@ class SubredditDiscovery:
             return results
 
         except Exception as e:
-            print(f"Subreddit search error: {e}")
+            logger.warning("Subreddit search error: %s", e)
             return []
 
     def get_subreddit_info(self, name: str) -> SubredditInfo | None:
@@ -109,7 +115,7 @@ class SubredditDiscovery:
                 discovery_method="direct",
             )
         except Exception as e:
-            print(f"Subreddit info error for r/{name}: {e}")
+            logger.warning("Subreddit info error for r/%s: %s", name, e)
             return None
 
     def get_trending(self, limit: int = 10) -> list[SubredditInfo]:
@@ -140,7 +146,7 @@ class SubredditDiscovery:
 
             return results
         except Exception as e:
-            print(f"Trending fetch error: {e}")
+            logger.warning("Trending fetch error: %s", e)
             return []
 
     def discover_for_brand(
@@ -265,7 +271,7 @@ Only include real, active subreddits. No r/ prefix."""
 
         # Age bonus (established communities)
         if sub.created_utc > 0:
-            age_years = (datetime.utcnow().timestamp() - sub.created_utc) / (365 * 24 * 3600)
+            age_years = (utc_now().timestamp() - sub.created_utc) / (365 * 24 * 3600)
             if age_years > 2:
                 score += 0.1
 
@@ -273,8 +279,6 @@ Only include real, active subreddits. No r/ prefix."""
 
     def _fetch_json(self, url: str) -> dict:
         """Fetch JSON from URL."""
-        import urllib.parse
-
         req = urllib.request.Request(
             url,
             headers={"User-Agent": self.user_agent}

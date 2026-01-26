@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from typing import Any
-from datetime import datetime
 
 import httpx
+
+from brand_os.core.config import utc_now
 
 
 def fetch_web_signals(
@@ -31,7 +32,7 @@ def fetch_web_signals(
                 signal = {
                     "source": "web",
                     "url": url,
-                    "fetched_at": datetime.utcnow().isoformat(),
+                    "fetched_at": utc_now().isoformat(),
                     "status_code": response.status_code,
                 }
 

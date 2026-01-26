@@ -7,9 +7,9 @@ human review of autonomous outputs.
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 
+from brand_os.core.config import utc_now
 from brand_os.core.decision import Decision
 from brand_os.core.storage import data_dir
 
@@ -28,7 +28,7 @@ class WriteAction:
     def execute(self, decision: Decision, analysis: dict | None = None) -> dict:
         """Write decision and analysis to files."""
         # Create output directory
-        date_str = datetime.utcnow().strftime("%Y-%m-%d")
+        date_str = utc_now().strftime("%Y-%m-%d")
         output_dir = self.base_dir / decision.brand / date_str
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -37,7 +37,7 @@ class WriteAction:
         json_data = {
             "decision": decision.model_dump(mode="json"),
             "analysis": analysis,
-            "written_at": datetime.utcnow().isoformat(),
+            "written_at": utc_now().isoformat(),
         }
         json_path.write_text(json.dumps(json_data, indent=2, default=str))
 

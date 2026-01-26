@@ -2,11 +2,20 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field
+
+
+def utc_now() -> datetime:
+    """Get current UTC time as timezone-aware datetime.
+
+    Use this instead of datetime.utcnow() which is deprecated in Python 3.12+.
+    """
+    return datetime.now(timezone.utc)
 
 
 class BrandOpsConfig(BaseModel):

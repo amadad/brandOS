@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import typer
+
+from brand_os.core.config import utc_now
 from rich.console import Console
 from rich.table import Table
 
@@ -239,7 +241,7 @@ def decision_approve(
     decision.status = DecisionStatus.APPROVED
     decision.reviewer = "cli"
     decision.review_reason = reason
-    decision.reviewed_at = datetime.utcnow()
+    decision.reviewed_at = utc_now()
 
     get_decision_log().update(decision)
     console.print(f"[green]Approved decision: {decision_id}[/green]")
@@ -268,7 +270,7 @@ def decision_reject(
     decision.status = DecisionStatus.REJECTED
     decision.reviewer = "cli"
     decision.review_reason = reason
-    decision.reviewed_at = datetime.utcnow()
+    decision.reviewed_at = utc_now()
 
     get_decision_log().update(decision)
     console.print(f"[red]Rejected decision: {decision_id}[/red]")
@@ -296,7 +298,7 @@ def decision_pending(
     table.add_column("Age")
 
     for d in decisions:
-        age = datetime.utcnow() - d.created_at
+        age = utc_now() - d.created_at
         age_str = f"{age.seconds // 3600}h" if age.seconds > 3600 else f"{age.seconds // 60}m"
 
         table.add_row(

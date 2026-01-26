@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.decision import Decision, DecisionType
 from brand_os.signals.schema import Signal
 
@@ -28,7 +29,7 @@ class AgentResult(BaseModel):
 
     agent_id: str
     session_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
 
     # Analysis output
     analysis: dict[str, Any] = Field(default_factory=dict)

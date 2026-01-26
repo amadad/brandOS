@@ -4,9 +4,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from datetime import datetime
 
 import yaml
+
+from brand_os.core.config import utc_now
 
 
 def load_signals_from_file(path: Path) -> list[dict[str, Any]]:
@@ -64,7 +65,7 @@ def save_signals_to_file(
     # Add timestamp
     for signal in signals:
         if "saved_at" not in signal:
-            signal["saved_at"] = datetime.utcnow().isoformat()
+            signal["saved_at"] = utc_now().isoformat()
 
     if path.suffix in (".yaml", ".yml"):
         content = yaml.dump(signals, default_flow_style=False, allow_unicode=True)

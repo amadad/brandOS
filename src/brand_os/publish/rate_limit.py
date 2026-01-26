@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
 
 
@@ -57,7 +58,7 @@ def can_post(platform: str, brand: str | None = None) -> bool:
         return True
 
     # Get posts in the last hour
-    window_start = datetime.utcnow() - timedelta(hours=1)
+    window_start = utc_now() - timedelta(hours=1)
     posts = state[key].get("posts", [])
 
     recent_posts = [
@@ -82,10 +83,10 @@ def record_post(platform: str, brand: str | None = None) -> None:
     if key not in state:
         state[key] = {"posts": []}
 
-    state[key]["posts"].append(datetime.utcnow().isoformat())
+    state[key]["posts"].append(utc_now().isoformat())
 
     # Clean up old entries (keep last 24 hours)
-    cutoff = datetime.utcnow() - timedelta(hours=24)
+    cutoff = utc_now() - timedelta(hours=24)
     state[key]["posts"] = [
         p for p in state[key]["posts"]
         if datetime.fromisoformat(p) > cutoff
@@ -113,7 +114,7 @@ def get_wait_time(platform: str, brand: str | None = None) -> int:
     if key not in state:
         return 0
 
-    window_start = datetime.utcnow() - timedelta(hours=1)
+    window_start = utc_now() - timedelta(hours=1)
     posts = state[key].get("posts", [])
 
     recent_posts = sorted([
@@ -127,7 +128,7 @@ def get_wait_time(platform: str, brand: str | None = None) -> int:
     # When will the oldest post fall outside the window?
     oldest = recent_posts[0]
     can_post_at = oldest + timedelta(hours=1)
-    wait = (can_post_at - datetime.utcnow()).total_seconds()
+    wait = (can_post_at - utc_now()).total_seconds()
 
     return max(0, int(wait))
 
@@ -141,7 +142,7 @@ def get_rate_status() -> dict[str, Any]:
     state = load_rate_state()
     status = {}
 
-    window_start = datetime.utcnow() - timedelta(hours=1)
+    window_start = utc_now() - timedelta(hours=1)
 
     for key, data in state.items():
         posts = data.get("posts", [])

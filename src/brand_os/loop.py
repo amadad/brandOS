@@ -20,7 +20,7 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, Field
 
-from brand_os.core.config import list_brands, load_brand_config
+from brand_os.core.config import list_brands, load_brand_config, utc_now
 from brand_os.core.decision import (
     Decision,
     DecisionLog,
@@ -66,7 +66,7 @@ class LoopConfig(BaseModel):
 class LoopState(BaseModel):
     """Current state of the loop."""
 
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=utc_now)
     last_signal_fetch: datetime | None = None
     last_agent_run: datetime | None = None
     last_health_check: datetime | None = None
@@ -85,7 +85,7 @@ class LoopState(BaseModel):
 class LoopEvent(BaseModel):
     """Event emitted by the loop for monitoring."""
 
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
     event_type: str
     brand: str | None = None
     details: dict[str, Any] = Field(default_factory=dict)
@@ -115,6 +115,7 @@ class AutonomousLoop:
 
         self._shutdown_event = asyncio.Event()
         self._event_handlers: list[Callable[[LoopEvent], None]] = []
+        self._last_analysis: dict[str, Any] | None = None
 
     def on_event(self, handler: Callable[[LoopEvent], None]) -> None:
         """Register an event handler for monitoring."""
@@ -132,7 +133,7 @@ class AutonomousLoop:
     async def start(self) -> None:
         """Start the autonomous loop."""
         self.state.is_running = True
-        self.state.started_at = datetime.utcnow()
+        self.state.started_at = utc_now()
         self._emit("loop_started")
 
         # Set up signal handlers for graceful shutdown
@@ -157,7 +158,7 @@ class AutonomousLoop:
     async def _run_loop(self) -> None:
         """Main loop logic."""
         while not self._shutdown_event.is_set():
-            cycle_start = datetime.utcnow()
+            cycle_start = utc_now()
 
             try:
                 # Get brands to process
@@ -174,7 +175,7 @@ class AutonomousLoop:
                 self._emit("cycle_error", error=str(e))
 
             # Wait for next cycle
-            elapsed = (datetime.utcnow() - cycle_start).total_seconds()
+            elapsed = (utc_now() - cycle_start).total_seconds()
             wait_time = max(0, self.config.signal_fetch_interval - elapsed)
 
             try:
@@ -297,7 +298,7 @@ class AutonomousLoop:
 
         # Create context
         context = AgentContext(
-            session_id=f"loop-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
+            session_id=f"loop-{utc_now().strftime('%Y%m%d-%H%M%S')}",
             brand=brand,
             signals=signals,
         )
@@ -379,7 +380,7 @@ class AutonomousLoop:
 
         try:
             decision.status = DecisionStatus.APPROVED
-            decision.reviewed_at = datetime.utcnow()
+            decision.reviewed_at = utc_now()
             decision.reviewer = "policy_engine"
             decision.review_reason = f"Auto-approved by rule: {evaluation.rule_matched}"
 
@@ -393,7 +394,7 @@ class AutonomousLoop:
             outcome["written"] = write_result
 
             decision.status = DecisionStatus.EXECUTED
-            decision.executed_at = datetime.utcnow()
+            decision.executed_at = utc_now()
             decision.outcome = outcome
 
             self._emit(

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir, ensure_dir
 
 
@@ -52,7 +52,7 @@ def enqueue(
         brand=brand,
         text=text,
         platform=platform,
-        created_at=datetime.utcnow().isoformat(),
+        created_at=utc_now().isoformat(),
         metadata=metadata or {},
     )
     items.append(item)

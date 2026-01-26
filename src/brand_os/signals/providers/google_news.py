@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from typing import Any
-from datetime import datetime
 
 import httpx
+
+from brand_os.core.config import utc_now
 
 
 def fetch_google_news(
@@ -64,7 +65,7 @@ def _parse_rss(xml_content: str, limit: int) -> list[dict[str, Any]]:
             "url": link_match.group(1) if link_match else "",
             "published_at": pubdate_match.group(1) if pubdate_match else "",
             "publisher": source_match.group(1) if source_match else "",
-            "fetched_at": datetime.utcnow().isoformat(),
+            "fetched_at": utc_now().isoformat(),
         }
 
         if signal["headline"]:

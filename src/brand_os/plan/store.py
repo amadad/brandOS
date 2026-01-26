@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 import uuid
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
 
 
@@ -49,8 +49,8 @@ def save_campaign(
         "brand": brand,
         "stages": stages or {},
         "metadata": metadata or {},
-        "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat(),
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
     }
 
     path = campaigns_dir() / f"{campaign_id}.json"
@@ -97,7 +97,7 @@ def update_campaign(
     campaign = load_campaign(campaign_id)
 
     campaign["stages"][stage] = result
-    campaign["updated_at"] = datetime.utcnow().isoformat()
+    campaign["updated_at"] = utc_now().isoformat()
 
     path = campaigns_dir() / f"{campaign_id}.json"
     path.write_text(json.dumps(campaign, indent=2, ensure_ascii=False))

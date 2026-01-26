@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import urllib.request
 from datetime import datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from brand_os.signals.schema import Signal, SignalSource, SignalType, Urgency
 
@@ -135,7 +138,7 @@ class RedditSource:
                     signals.append(signal)
 
             except Exception as e:
-                print(f"Reddit fetch error for r/{subreddit}: {e}")
+                logger.warning("Reddit fetch error for r/%s: %s", subreddit, e)
 
         return signals
 
@@ -157,7 +160,7 @@ class RedditSource:
     def _post_to_signal(self, post: dict, brand: str, subreddit: str) -> Signal:
         """Convert Reddit post to Signal."""
         post_id = post.get("id", "")
-        content_hash = hashlib.md5(post_id.encode()).hexdigest()[:12]
+        content_hash = hashlib.sha256(post_id.encode()).hexdigest()[:12]
 
         title = post.get("title", "")
         selftext = post.get("selftext", "")[:1000]
@@ -235,7 +238,7 @@ def get_subreddits_for_brand(brand_config: dict, use_discovery: bool = True) -> 
                 if discovered:
                     return discovered[:10]  # Limit to top 10
             except Exception as e:
-                print(f"Subreddit discovery failed: {e}")
+                logger.warning("Subreddit discovery failed: %s", e)
 
     # Fallback: simple keyword-based suggestion
     keywords = brand_config.get("keywords", [])

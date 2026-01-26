@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -175,3 +176,18 @@ def complete_json(
 ) -> dict[str, Any]:
     provider = get_provider()
     return provider.complete_json(prompt=prompt, system=system, model=model, default=default)
+
+
+async def acomplete(prompt: str, system: str | None = None, model: str | None = None) -> str:
+    """Async version of complete - runs sync provider in thread pool."""
+    return await asyncio.to_thread(complete, prompt, system, model)
+
+
+async def acomplete_json(
+    prompt: str,
+    system: str | None = None,
+    model: str | None = None,
+    default: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Async version of complete_json - runs sync provider in thread pool."""
+    return await asyncio.to_thread(complete_json, prompt, system, model, default)

@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from brand_os.core.config import utc_now
 from brand_os.core.llm import complete_json
 from brand_os.core.brands import get_brand_dir
 
@@ -37,7 +37,7 @@ def log_evaluation(
     log_path = get_eval_log_path(brand)
 
     entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utc_now().isoformat(),
         "content": content[:500],  # Truncate for storage
         "overall_score": grade_result.get("overall_score"),
         "passed": grade_result.get("passed"),
@@ -121,7 +121,7 @@ Output JSON."""
 
     # Save learnings
     learnings_path = get_learnings_path(brand)
-    learnings["updated_at"] = datetime.utcnow().isoformat()
+    learnings["updated_at"] = utc_now().isoformat()
     learnings["entries_analyzed"] = len(history)
     learnings_path.write_text(json.dumps(learnings, indent=2, ensure_ascii=False))
 

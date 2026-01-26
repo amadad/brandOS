@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from brand_os.core.config import utc_now
 from brand_os.core.llm import complete_json
 from brand_os.core.storage import data_dir
 from brand_os.persona.crud import load_persona, save_persona
@@ -42,7 +42,7 @@ def log_interaction(
     log_path = get_learning_log_path(persona_name)
 
     entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utc_now().isoformat(),
         "user_input": user_input,
         "response": response,
         "feedback": feedback,

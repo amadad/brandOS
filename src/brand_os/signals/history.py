@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
 
 
@@ -57,7 +58,7 @@ def append_signals(
                 continue
 
             # Add timestamp
-            signal["stored_at"] = datetime.utcnow().isoformat()
+            signal["stored_at"] = utc_now().isoformat()
 
             f.write(json.dumps(signal, ensure_ascii=False) + "\n")
             count += 1
@@ -102,7 +103,7 @@ def query_signals(
             # Try parsing relative dates like "7d"
             if since.endswith("d"):
                 days = int(since[:-1])
-                since_date = datetime.utcnow() - timedelta(days=days)
+                since_date = utc_now() - timedelta(days=days)
 
     with open(history_file) as f:
         for line in f:

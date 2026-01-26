@@ -9,6 +9,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.config import utc_now
+
 
 class SignalSource(str, Enum):
     """Known signal sources."""
@@ -61,7 +63,7 @@ class Signal(BaseModel):
     source: SignalSource
     signal_type: SignalType
     brand: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
 
     # Content
     title: str
@@ -88,7 +90,7 @@ class SignalBatch(BaseModel):
 
     source: SignalSource
     brand: str
-    fetched_at: datetime = Field(default_factory=datetime.utcnow)
+    fetched_at: datetime = Field(default_factory=utc_now)
     signals: list[Signal] = Field(default_factory=list)
     cursor: str | None = None  # For pagination
     has_more: bool = False

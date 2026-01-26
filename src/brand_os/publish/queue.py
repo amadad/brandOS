@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from brand_os.core.brands import get_brand_dir
+from brand_os.core.config import utc_now
 
 
 class QueueItem(BaseModel):
@@ -20,7 +20,7 @@ class QueueItem(BaseModel):
     platform: str | None = None
     scheduled_at: str | None = None
     status: str = "pending"  # pending, posted, failed
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -65,7 +65,7 @@ def save_queue(brand: str, items: list[QueueItem]) -> None:
     queue_path.parent.mkdir(parents=True, exist_ok=True)
 
     data = {
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": utc_now().isoformat(),
         "items": [item.model_dump() for item in items],
     }
 
