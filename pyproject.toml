@@ -1,0 +1,97 @@
+[project]
+name = "brand-os"
+version = "0.1.0"
+description = "CLI-first brand operations toolkit - unified personas, intel, content, and publishing"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Ali Madad", email = "ali@scty.org"},
+]
+keywords = ["brand", "marketing", "persona", "content", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "pydantic>=2.0",
+    "typer>=0.12",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+gemini = [
+    "google-genai>=1.0",
+]
+openai = [
+    "litellm>=1.40",
+]
+persona = [
+    "litellm>=1.40",
+    "exa-py>=1.0",
+]
+optimize = [
+    "dspy>=2.5",
+]
+intel = [
+    "apify-client>=2.11",
+    "beautifulsoup4>=4.12",
+]
+video = [
+    "replicate>=1.4",
+    "cartesia>=2.2",
+]
+image = [
+    "google-genai>=1.0",
+]
+publish = [
+    "tweepy>=4.14",
+]
+server = [
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+]
+email = [
+    "resend>=2.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+]
+all = [
+    "brand-os[gemini,openai,persona,optimize,intel,video,image,publish,server,email]",
+]
+
+[project.scripts]
+brandos = "brand_os.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/amadad/brand-os"
+Repository = "https://github.com/amadad/brand-os"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/brand_os"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

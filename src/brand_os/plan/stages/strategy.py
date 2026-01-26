@@ -1,0 +1,90 @@
+"""Strategy stage - positioning and planning."""
+from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from brand_os.core.llm import complete_json
+
+
+class AudienceSegment(BaseModel):
+    """Target audience segment."""
+
+    name: str
+    description: str
+    pain_points: list[str] = Field(default_factory=list)
+    motivations: list[str] = Field(default_factory=list)
+
+
+class Pillar(BaseModel):
+    """Strategic content pillar."""
+
+    name: str
+    description: str
+    topics: list[str] = Field(default_factory=list)
+
+
+class StrategyResult(BaseModel):
+    """Strategy stage output."""
+
+    positioning: str
+    value_proposition: str | None = None
+    audience: list[AudienceSegment] = Field(default_factory=list)
+    pillars: list[Pillar] = Field(default_factory=list)
+    differentiators: list[str] = Field(default_factory=list)
+    messaging_guidelines: list[str] = Field(default_factory=list)
+    budget_recommendation: str | None = None
+    timeline: str | None = None
+
+
+STRATEGY_SYSTEM = """You are a senior brand strategist.
+Based on the research, develop a comprehensive strategy.
+
+Output JSON with:
+- positioning: clear positioning statement
+- value_proposition: core value proposition
+- audience: list of audience segments with name, description, pain_points, motivations
+- pillars: content pillars with name, description, topics
+- differentiators: list of key differentiators
+- messaging_guidelines: list of messaging do's and don'ts
+- budget_recommendation: suggested budget approach
+- timeline: recommended timeline"""
+
+
+def strategy(
+    research_result: dict[str, Any] | None = None,
+    brief: str | None = None,
+    brand: str | None = None,
+) -> StrategyResult:
+    """Execute the strategy stage.
+
+    Args:
+        research_result: Output from research stage
+        brief: Original brief (if no research result)
+        brand: Optional brand name
+
+    Returns:
+        StrategyResult with positioning and plan
+    """
+    prompt_parts = []
+
+    if research_result:
+        prompt_parts.append(f"Research findings:\n{research_result}")
+    elif brief:
+        prompt_parts.append(f"Brief: {brief}")
+    else:
+        raise ValueError("Either research_result or brief required")
+
+    if brand:
+        prompt_parts.append(f"Brand: {brand}")
+
+    prompt_parts.append("Develop a comprehensive brand/marketing strategy.")
+
+    prompt = "\n\n".join(prompt_parts)
+
+    default = StrategyResult(positioning="").model_dump()
+
+    result = complete_json(prompt=prompt, system=STRATEGY_SYSTEM, default=default)
+
+    return StrategyResult(**result)

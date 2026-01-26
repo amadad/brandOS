@@ -1,0 +1,51 @@
+# Brand Configuration Template
+# Copy this directory to create a new brand
+
+name: template
+description: "Your brand description"
+
+# Voice and tone guidelines
+voice:
+  tone: neutral
+  vocabulary: general
+  patterns: []
+  rules: []
+  avoid_phrases: []
+
+# Visual identity
+visual:
+  palette:
+    primary: "#000000"
+    secondary: "#ffffff"
+  typography:
+    heading: "system-ui"
+    body: "system-ui"
+
+# Social handles (used for intel scraping)
+handles:
+  # twitter: your_handle
+  # linkedin: your_handle
+  # instagram: your_handle
+
+# Platforms and their specific configs
+platforms:
+  twitter:
+    enabled: true
+    max_length: 280
+  linkedin:
+    enabled: true
+    max_length: 3000
+  instagram:
+    enabled: false
+
+# Keywords for signal monitoring
+keywords: []
+
+# Competitor brands to track
+competitors: []
+
+# Phrases to filter out of signals
+stop_phrases: []
+
+# Additional metadata
+metadata: {}
