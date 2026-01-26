@@ -62,13 +62,27 @@ server = [
 email = [
     "resend>=2.0",
 ]
+workflows = [
+    "python-statemachine>=2.0",
+    "aiosqlite>=0.20",
+]
+notifications = [
+    "slack-sdk>=3.27",
+]
+agents = [
+    "pydantic-ai>=0.0.24",
+]
+predict = [
+    "statsforecast>=1.7",
+    "pyod>=2.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "ruff>=0.5",
 ]
 all = [
-    "brand-os[gemini,openai,persona,optimize,intel,video,image,publish,server,email]",
+    "brand-os[gemini,openai,persona,optimize,intel,video,image,publish,server,email,workflows,notifications,agents,predict]",
 ]
 
 [project.scripts]
