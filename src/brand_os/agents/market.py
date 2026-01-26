@@ -6,13 +6,39 @@ from typing import Any
 
 from brand_os.agents.base import AgentContext, BaseAgent
 from brand_os.core.decision import Decision, DecisionType
+from brand_os.core.llm import complete_json
+
+
+ANALYSIS_SYSTEM = """You are a market analyst for brand intelligence.
+Analyze signals for trends, opportunities, and risks.
+Be specific and actionable. Output valid JSON only."""
+
+ANALYSIS_PROMPT = """Analyze these signals for brand "{brand}":
+
+{signals_text}
+
+Return JSON with this structure:
+{{
+  "summary": "2-3 sentence overview",
+  "trends": [
+    {{"topic": "...", "direction": "up|down|stable", "confidence": 0.0-1.0, "evidence": "..."}}
+  ],
+  "opportunities": [
+    {{"description": "...", "action": "...", "urgency": "low|medium|high"}}
+  ],
+  "risks": [
+    {{"description": "...", "severity": "low|medium|high", "mitigation": "..."}}
+  ],
+  "sentiment": -1.0 to 1.0,
+  "confidence": 0.0-1.0
+}}"""
 
 
 class MarketAnalyst(BaseAgent):
     """Analyzes market signals to identify trends and opportunities.
 
     Capabilities:
-    - Trend detection from price and volume signals
+    - Trend detection from news and market signals
     - Competitor movement analysis
     - Opportunity identification
     - Risk assessment
@@ -36,22 +62,41 @@ class MarketAnalyst(BaseAgent):
 
     async def _analyze(self, context: AgentContext) -> dict[str, Any]:
         """Analyze market signals for trends and opportunities."""
-        # TODO: Implement with PydanticAI or direct LLM call
-        # For now, return stub analysis
+        if not context.signals:
+            return {
+                "summary": f"No signals to analyze for {context.brand}",
+                "trends": [],
+                "opportunities": [],
+                "risks": [],
+                "sentiment": 0.0,
+                "confidence": 0.0,
+            }
 
-        signals = context.signals
-        financial_signals = [s for s in signals if "financial" in s.source.value]
-        competitor_signals = [s for s in signals if s.signal_type.value == "competitor_move"]
+        # Format signals for LLM
+        signals_text = "\n\n".join(
+            f"[{s.source.value}] {s.title}\n{s.content[:500]}"
+            for s in context.signals[:20]  # Limit to avoid token overflow
+        )
 
-        return {
-            "summary": f"Analyzed {len(signals)} signals for {context.brand}",
-            "trends": [],
-            "opportunities": [],
-            "risks": [],
-            "competitor_movements": len(competitor_signals),
-            "market_sentiment": 0.0,  # Placeholder
-            "confidence": 0.5,
-        }
+        prompt = ANALYSIS_PROMPT.format(
+            brand=context.brand,
+            signals_text=signals_text,
+        )
+
+        result = complete_json(
+            prompt=prompt,
+            system=ANALYSIS_SYSTEM,
+            default={
+                "summary": "Analysis failed",
+                "trends": [],
+                "opportunities": [],
+                "risks": [],
+                "sentiment": 0.0,
+                "confidence": 0.0,
+            },
+        )
+
+        return result
 
     async def _propose_decisions(
         self, context: AgentContext, analysis: dict[str, Any]

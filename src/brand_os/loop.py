@@ -36,6 +36,7 @@ from brand_os.core.policy import (
     PolicyVerdict,
     get_policy_engine,
 )
+from brand_os.core.learning import log_outcome, get_learning_tracker
 
 
 class LoopConfig(BaseModel):
@@ -234,28 +235,70 @@ class AutonomousLoop:
             self.state.errors += 1
             self._emit("brand_processing_error", brand=brand, error=str(e))
 
-    async def _fetch_signals(self, brand: str) -> list[dict[str, Any]]:
-        """Fetch signals for a brand.
+    async def _fetch_signals(self, brand: str) -> list[Any]:
+        """Fetch signals for a brand from configured sources."""
+        from brand_os.signals.sources.rss import RSSSource, DEFAULT_FEEDS
+        from brand_os.signals.schema import Signal
 
-        TODO: Implement actual signal fetching from configured sources.
-        """
-        # Placeholder - will be implemented with signal sources
-        self._emit("signals_fetched", brand=brand, count=0)
-        return []
+        # Load brand config for keywords and custom feeds
+        config = load_brand_config(brand) or {}
+        keywords = config.get("keywords", [])
+        custom_feeds = config.get("feeds", [])
+        feeds = custom_feeds if custom_feeds else DEFAULT_FEEDS
+
+        # Fetch from RSS
+        source = RSSSource()
+        signals = await source.fetch(
+            brand=brand,
+            feeds=feeds,
+            keywords=keywords if keywords else None,
+            max_per_feed=10,
+        )
+
+        self._emit("signals_fetched", brand=brand, count=len(signals))
+        return signals
 
     async def _run_agents(
         self,
         brand: str,
-        signals: list[dict[str, Any]],
+        signals: list[Any],
         policy: BrandPolicy,
     ) -> list[Decision]:
-        """Run agents on signals to generate decisions.
+        """Run agents on signals to generate decisions."""
+        from brand_os.agents.base import AgentContext
+        from brand_os.agents.market import MarketAnalyst
 
-        TODO: Implement actual agent orchestration.
-        """
-        # Placeholder - will be implemented with agent framework
-        self._emit("agents_completed", brand=brand, decisions=0)
-        return []
+        if not signals:
+            return []
+
+        # Create context
+        context = AgentContext(
+            session_id=f"loop-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
+            brand=brand,
+            signals=signals,
+        )
+
+        # Run market analyst (add more agents as needed)
+        decisions: list[Decision] = []
+
+        try:
+            analyst = MarketAnalyst()
+            result = await analyst.process(context)
+            decisions.extend(result.decisions)
+
+            # Store analysis for later use in execution
+            self._last_analysis = result.analysis
+
+            self._emit(
+                "agents_completed",
+                brand=brand,
+                decisions=len(decisions),
+                agent="market-analyst",
+            )
+        except Exception as e:
+            self._emit("agent_error", brand=brand, agent="market-analyst", error=str(e))
+
+        return decisions
 
     async def _process_decisions(
         self,
@@ -307,10 +350,9 @@ class AutonomousLoop:
         decision: Decision,
         evaluation: PolicyEvaluation,
     ) -> None:
-        """Execute an approved decision.
+        """Execute an approved decision."""
+        from brand_os.actions.write import WriteAction
 
-        TODO: Implement actual execution handlers per decision type.
-        """
         try:
             decision.status = DecisionStatus.APPROVED
             decision.reviewed_at = datetime.utcnow()
@@ -319,6 +361,12 @@ class AutonomousLoop:
 
             # Execute based on decision type
             outcome = await self._execute_by_type(decision)
+
+            # Always write output for audit trail
+            write_action = WriteAction()
+            analysis = getattr(self, '_last_analysis', None)
+            write_result = write_action.execute(decision, analysis)
+            outcome["written"] = write_result
 
             decision.status = DecisionStatus.EXECUTED
             decision.executed_at = datetime.utcnow()
@@ -343,6 +391,8 @@ class AutonomousLoop:
 
         finally:
             self.decision_log.update(decision)
+            # Log outcome for learning
+            log_outcome(decision)
 
     async def _execute_by_type(self, decision: Decision) -> dict[str, Any]:
         """Execute decision based on its type.
@@ -402,11 +452,18 @@ class AutonomousLoop:
         extra_reason: str | None = None,
     ) -> None:
         """Escalate decision for human review."""
+        from brand_os.actions.write import WriteAction
+
         decision.status = DecisionStatus.PENDING_REVIEW
         reasons = evaluation.reasons.copy()
         if extra_reason:
             reasons.append(extra_reason)
         decision.review_reason = "; ".join(reasons)
+
+        # Write to file for human review
+        write_action = WriteAction()
+        analysis = getattr(self, '_last_analysis', None)
+        write_action.execute(decision, analysis)
 
         self.decision_log.update(decision)
 

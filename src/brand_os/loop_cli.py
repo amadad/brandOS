@@ -16,6 +16,9 @@ console = Console()
 # Loop management
 loop_app = typer.Typer(help="Autonomous loop management.")
 
+# Learning/metrics management
+learn_app = typer.Typer(help="Learning and self-improvement metrics.")
+
 
 @loop_app.command("start")
 def loop_start(
@@ -398,3 +401,72 @@ def policy_templates() -> None:
         console.print(f"  Always escalate: {[t.value for t in policy.always_escalate]}")
         console.print(f"  Rules: {len(policy.rules)}")
         console.print()
+
+
+@learn_app.command("metrics")
+def learn_metrics(
+    brand: str = typer.Argument(..., help="Brand name"),
+    days: int = typer.Option(30, "--days", "-d", help="Days to analyze"),
+) -> None:
+    """Show learning metrics for a brand.
+
+    Displays decision patterns, approval rates, and recommendations
+    for improving autonomous operation.
+    """
+    from brand_os.core.learning import get_learning_tracker
+
+    tracker = get_learning_tracker()
+    metrics = tracker.compute_metrics(brand, days)
+
+    console.print(f"[bold]Learning Metrics: {brand}[/bold]")
+    console.print(f"Period: {metrics.period_start.date()} to {metrics.period_end.date()}\n")
+
+    # Volume
+    console.print(f"[cyan]Decisions:[/cyan] {metrics.total_decisions}")
+    if metrics.decisions_by_type:
+        for dt, count in sorted(metrics.decisions_by_type.items()):
+            console.print(f"  {dt}: {count}")
+
+    console.print()
+
+    # Rates
+    console.print(f"[cyan]Rates:[/cyan]")
+    console.print(f"  Approval: {metrics.approval_rate:.0%}")
+    console.print(f"  Rejection: {metrics.rejection_rate:.0%}")
+    console.print(f"  Auto-executed: {metrics.auto_executed_rate:.0%}")
+
+    console.print()
+
+    # Confidence calibration
+    console.print(f"[cyan]Confidence Calibration:[/cyan]")
+    console.print(f"  Avg approved: {metrics.avg_confidence_approved:.2f}")
+    console.print(f"  Avg rejected: {metrics.avg_confidence_rejected:.2f}")
+    if metrics.confidence_threshold_recommendation:
+        console.print(f"  Recommended threshold: {metrics.confidence_threshold_recommendation:.2f}")
+
+    # Patterns
+    if metrics.high_success_decision_types:
+        console.print(f"\n[green]High success types:[/green] {', '.join(metrics.high_success_decision_types)}")
+    if metrics.low_success_decision_types:
+        console.print(f"[red]Low success types:[/red] {', '.join(metrics.low_success_decision_types)}")
+
+
+@learn_app.command("recommendations")
+def learn_recommendations(
+    brand: str = typer.Argument(..., help="Brand name"),
+    days: int = typer.Option(30, "--days", "-d", help="Days to analyze"),
+) -> None:
+    """Get actionable recommendations from learning data."""
+    from brand_os.core.learning import get_learning_tracker
+
+    tracker = get_learning_tracker()
+    recs = tracker.get_recommendations(brand, days)
+
+    console.print(f"[bold]Recommendations: {brand}[/bold]\n")
+
+    if not recs:
+        console.print("[green]No recommendations - system is performing well![/green]")
+        return
+
+    for i, rec in enumerate(recs, 1):
+        console.print(f"{i}. {rec}")

@@ -29,6 +29,7 @@ class SignalSource(str, Enum):
 class SignalType(str, Enum):
     """Types of signals."""
 
+    NEWS = "news"
     MENTION = "mention"
     SENTIMENT_SHIFT = "sentiment_shift"
     PRICE_MOVEMENT = "price_movement"
