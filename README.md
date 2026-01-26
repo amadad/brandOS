@@ -411,6 +411,127 @@ Or use the MCP server for AI assistant integration:
 python -m brand_os.server.mcp
 ```
 
+## Autonomous Loop (24/7 Operation)
+
+brandOS can run autonomously, continuously monitoring signals and generating analysis.
+
+### Quick Deploy
+
+```bash
+# 1. Clone
+git clone https://github.com/amadad/brandOS.git
+cd brandOS
+
+# 2. Set API key (required for LLM analysis)
+export GOOGLE_API_KEY=your_gemini_key
+
+# 3. Install and create a brand
+uv sync
+brandos brand init mycompany
+
+# 4. Configure the brand
+nano brands/mycompany/brand.yml
+```
+
+Add to `brand.yml`:
+```yaml
+name: mycompany
+industry: "B2B SaaS"
+target_audience: "CTOs at mid-size companies"
+keywords:
+  - AI
+  - automation
+  - enterprise
+```
+
+```bash
+# 5. Discover relevant subreddits (optional)
+brandos signals discover-subreddits --brand mycompany
+
+# 6. Start the loop
+brandos loop start
+```
+
+### Docker Deployment
+
+```bash
+# Create brand first (required)
+uv sync && brandos brand init mycompany
+# Edit brands/mycompany/brand.yml
+
+# Create .env file
+echo "GOOGLE_API_KEY=your_key" > .env
+echo "SLACK_WEBHOOK_URL=your_webhook" >> .env  # optional
+
+# Run
+docker compose up -d
+
+# View logs
+docker compose logs -f loop
+```
+
+### What the Loop Does
+
+Each cycle (default: 5 minutes):
+1. **Fetches signals** from RSS feeds and Reddit
+2. **Analyzes** with LLM (trends, opportunities, risks)
+3. **Evaluates** decisions against policy (confidence thresholds)
+4. **Executes** allowed decisions (writes to `~/.brand-os/outputs/`)
+5. **Escalates** uncertain decisions (Slack notification)
+6. **Logs outcomes** for self-improvement
+
+### Loop Commands
+
+```bash
+brandos loop start                    # Start autonomous loop
+brandos loop start --brand mycompany  # Single brand only
+brandos loop test mycompany           # Test one cycle
+
+brandos decision list                 # View all decisions
+brandos decision pending              # Decisions needing review
+brandos decision approve <id>         # Approve escalated decision
+
+brandos policy show mycompany         # View policy config
+brandos policy test mycompany         # Test policy evaluation
+
+brandos learn metrics mycompany       # View learning metrics
+brandos learn recommendations myco    # Get improvement suggestions
+```
+
+### Policy Configuration
+
+Control autonomous behavior in `brand.yml`:
+
+```yaml
+policy:
+  enabled: true
+  default_verdict: escalate  # allow, escalate, deny
+  global_min_confidence: 0.7
+
+  always_allow:
+    - signal_action
+  always_escalate:
+    - budget_allocation
+
+  rules:
+    - name: content-auto-publish
+      decision_types: [content_publish]
+      min_confidence: 0.8
+      max_per_hour: 5
+      cooldown_minutes: 10
+```
+
+### Requirements
+
+| Component | Required | Notes |
+|-----------|----------|-------|
+| `GOOGLE_API_KEY` | Yes | For LLM analysis (Gemini) |
+| `ANTHROPIC_API_KEY` | Alt | Alternative LLM (Claude) |
+| `SLACK_WEBHOOK_URL` | No | For escalation alerts |
+| Brand config | Yes | At least one brand in `brands/` |
+
+Without an LLM API key, signals will be fetched but no analysis/decisions will be generated.
+
 ## Documentation
 
 | Document | Purpose |
@@ -418,6 +539,7 @@ python -m brand_os.server.mcp
 | [ROADMAP.md](ROADMAP.md) | Implementation phases from current state to full vision |
 | [SIGNAL_STRATEGY.md](SIGNAL_STRATEGY.md) | Signal intelligence positioning and phased build plan |
 | [AGENTS.md](AGENTS.md) | Agent architecture and multi-agent coordination |
+| [GATEWAY.md](GATEWAY.md) | Gateway coordination layer design |
 | [CLAUDE.md](CLAUDE.md) | Development guidelines and conventions |
 
 ## Development
