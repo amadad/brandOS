@@ -411,6 +411,15 @@ Or use the MCP server for AI assistant integration:
 python -m brand_os.server.mcp
 ```
 
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [ROADMAP.md](ROADMAP.md) | Implementation phases from current state to full vision |
+| [SIGNAL_STRATEGY.md](SIGNAL_STRATEGY.md) | Signal intelligence positioning and phased build plan |
+| [AGENTS.md](AGENTS.md) | Agent architecture and multi-agent coordination |
+| [CLAUDE.md](CLAUDE.md) | Development guidelines and conventions |
+
 ## Development
 
 ```bash

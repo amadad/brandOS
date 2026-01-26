@@ -42,7 +42,7 @@ optimize = [
     "dspy>=2.5",
 ]
 intel = [
-    "apify-client>=2.11",
+    "apify-client>=1.7",
     "beautifulsoup4>=4.12",
 ]
 video = [

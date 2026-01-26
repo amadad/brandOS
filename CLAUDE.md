@@ -2,7 +2,9 @@
 
 ## Project Overview
 
-CLI-first brand operations toolkit. Unified personas, competitive intel, content production, evaluation, and publishing.
+CLI-first brand operations toolkit with autonomous execution. Unified personas, competitive intel, content production, evaluation, and publishing.
+
+**Architecture**: Human-over-the-loop - humans set policies and thresholds, system operates autonomously within those boundaries, exceptions escalated.
 
 ## Project Structure
 
@@ -10,10 +12,13 @@ CLI-first brand operations toolkit. Unified personas, competitive intel, content
 src/brand_os/
 ├── cli.py              # Main CLI entry (Typer)
 ├── cli_utils.py        # Output formatting helpers
+├── loop.py             # Autonomous execution daemon
+├── loop_cli.py         # Loop/decision/policy CLI commands
 ├── core/               # Shared utilities
 │   ├── brands.py       # Brand config loading
 │   ├── config.py       # App configuration
 │   ├── decision.py     # Decision logging + audit trail
+│   ├── policy.py       # Policy engine + guardrails
 │   ├── llm.py          # LLM interface
 │   ├── signals.py      # Signal utilities
 │   └── storage.py      # Storage paths
@@ -110,13 +115,72 @@ signal = Signal(
 )
 ```
 
-## Approval Workflow
+## Autonomous Loop
 
-High-stakes actions follow: `draft → pending_review → approved/rejected → executed`
+The system runs 24/7 in a container, processing signals and executing decisions within policy boundaries.
 
 ```bash
-# CLI approval commands
-brandos decision list --status pending
+# Start the loop
+brandos loop start                          # All brands
+brandos loop start --brand acme             # Specific brand
+brandos loop test acme                      # Test single cycle
+
+# Docker deployment
+docker compose up -d                        # Start container
+docker compose logs -f loop                 # View logs
+```
+
+## Policy Engine
+
+Policies define what the system can do autonomously vs. what requires human intervention.
+
+```python
+from brand_os.core.policy import evaluate_decision, PolicyVerdict
+
+evaluation = evaluate_decision(decision)
+
+if evaluation.verdict == PolicyVerdict.ALLOW:
+    # Execute autonomously
+elif evaluation.verdict == PolicyVerdict.ESCALATE:
+    # Queue for human review
+else:  # DENY
+    # Blocked by policy
+```
+
+Policy configuration per brand in `brand.yml`:
+
+```yaml
+policy:
+  enabled: true
+  default_verdict: escalate
+  global_min_confidence: 0.7
+  always_allow: [signal_action]
+  always_escalate: [budget_allocation]
+  rules:
+    - name: content-auto-publish
+      decision_types: [content_publish]
+      min_confidence: 0.8
+      max_per_hour: 5
+```
+
+```bash
+# Policy CLI commands
+brandos policy show acme
+brandos policy test acme --type content_publish --confidence 0.85
+brandos policy templates
+```
+
+## Decision Management
+
+All agent-proposed actions are logged and evaluated against policy before execution.
+
+```bash
+# View decisions
+brandos decision list
+brandos decision list --brand acme --status pending_review
+brandos decision pending                    # Quick view of items needing review
+
+# Human review (for escalated decisions)
 brandos decision approve <id> --reason "LGTM"
 brandos decision reject <id> --reason "Too risky"
 ```

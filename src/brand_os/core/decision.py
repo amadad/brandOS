@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from brand_os.core.storage import get_data_dir
+from brand_os.core.storage import data_dir
 
 
 class DecisionType(str, Enum):
@@ -82,7 +82,7 @@ class DecisionLog:
 
     def __init__(self, brand: str | None = None):
         self.brand = brand
-        self._log_dir = get_data_dir() / "decisions"
+        self._log_dir = data_dir() / "decisions"
         self._log_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_log_file(self, brand: str) -> Path:

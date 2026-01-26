@@ -25,6 +25,7 @@ from brand_os.produce.cli import produce_app
 from brand_os.eval.cli import eval_app
 from brand_os.publish.cli import publish_app, queue_cli_app
 from brand_os.monitor.cli import monitor_app
+from brand_os.loop_cli import loop_app, decision_app, policy_app
 
 app.add_typer(persona_app, name="persona")
 app.add_typer(intel_app, name="intel")
@@ -35,6 +36,9 @@ app.add_typer(eval_app, name="eval")
 app.add_typer(publish_app, name="publish")
 app.add_typer(queue_cli_app, name="queue")
 app.add_typer(monitor_app, name="monitor")
+app.add_typer(loop_app, name="loop")
+app.add_typer(decision_app, name="decision")
+app.add_typer(policy_app, name="policy")
 
 # Brand management commands
 brand_app = typer.Typer(help="Brand management commands.")

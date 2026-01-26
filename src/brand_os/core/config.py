@@ -68,3 +68,43 @@ def get_api_key(provider: str) -> str | None:
     }
     env_var = key_map.get(provider, f"{provider.upper()}_API_KEY")
     return os.getenv(env_var)
+
+
+def get_brands_dir() -> Path:
+    """Get the brands directory."""
+    config = get_config()
+    brands_dir = config.brands_dir
+    if not brands_dir.is_absolute():
+        brands_dir = Path.cwd() / brands_dir
+    return brands_dir
+
+
+def load_brand_config(brand: str) -> dict[str, Any] | None:
+    """Load configuration for a specific brand.
+
+    Args:
+        brand: Brand name/slug
+
+    Returns:
+        Brand configuration dict or None if not found
+    """
+    brands_dir = get_brands_dir()
+    brand_file = brands_dir / brand / "brand.yml"
+
+    if not brand_file.exists():
+        return None
+
+    with open(brand_file) as f:
+        return yaml.safe_load(f) or {}
+
+
+def list_brands() -> list[str]:
+    """List all available brands."""
+    brands_dir = get_brands_dir()
+    if not brands_dir.exists():
+        return []
+
+    return [
+        d.name for d in brands_dir.iterdir()
+        if d.is_dir() and (d / "brand.yml").exists() and not d.name.startswith("_")
+    ]
