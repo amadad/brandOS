@@ -44,6 +44,14 @@ keywords: []
 # Competitor brands to track
 competitors: []
 
+# Subreddits to monitor (auto-suggested from keywords if empty)
+# Example: ["startups", "SaaS", "marketing"]
+subreddits: []
+
+# RSS feeds to monitor (uses defaults if empty)
+# Example: ["https://news.ycombinator.com/rss"]
+feeds: []
+
 # Phrases to filter out of signals
 stop_phrases: []
 

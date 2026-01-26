@@ -238,25 +238,49 @@ class AutonomousLoop:
     async def _fetch_signals(self, brand: str) -> list[Any]:
         """Fetch signals for a brand from configured sources."""
         from brand_os.signals.sources.rss import RSSSource, DEFAULT_FEEDS
-        from brand_os.signals.schema import Signal
+        from brand_os.signals.sources.reddit import RedditSource, get_subreddits_for_brand
 
-        # Load brand config for keywords and custom feeds
+        # Load brand config
         config = load_brand_config(brand) or {}
         keywords = config.get("keywords", [])
-        custom_feeds = config.get("feeds", [])
-        feeds = custom_feeds if custom_feeds else DEFAULT_FEEDS
+
+        all_signals: list[Any] = []
 
         # Fetch from RSS
-        source = RSSSource()
-        signals = await source.fetch(
-            brand=brand,
-            feeds=feeds,
-            keywords=keywords if keywords else None,
-            max_per_feed=10,
-        )
+        try:
+            custom_feeds = config.get("feeds", [])
+            feeds = custom_feeds if custom_feeds else DEFAULT_FEEDS
+            rss_source = RSSSource()
+            rss_signals = await rss_source.fetch(
+                brand=brand,
+                feeds=feeds,
+                keywords=keywords if keywords else None,
+                max_per_feed=10,
+            )
+            all_signals.extend(rss_signals)
+            self._emit("signals_fetched", brand=brand, source="rss", count=len(rss_signals))
+        except Exception as e:
+            self._emit("signal_source_error", brand=brand, source="rss", error=str(e))
 
-        self._emit("signals_fetched", brand=brand, count=len(signals))
-        return signals
+        # Fetch from Reddit
+        try:
+            subreddits = get_subreddits_for_brand(config)
+            if subreddits:
+                reddit_source = RedditSource()
+                reddit_signals = await reddit_source.fetch(
+                    brand=brand,
+                    subreddits=subreddits,
+                    keywords=keywords if keywords else None,
+                    limit_per_sub=15,
+                    min_score=10,
+                )
+                all_signals.extend(reddit_signals)
+                self._emit("signals_fetched", brand=brand, source="reddit", count=len(reddit_signals))
+        except Exception as e:
+            self._emit("signal_source_error", brand=brand, source="reddit", error=str(e))
+
+        self._emit("signals_total", brand=brand, count=len(all_signals))
+        return all_signals
 
     async def _run_agents(
         self,
