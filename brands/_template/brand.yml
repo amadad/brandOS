@@ -4,6 +4,14 @@
 name: template
 description: "Your brand description"
 
+# Industry/sector (used for subreddit discovery)
+# Examples: "B2B SaaS", "Healthcare", "E-commerce", "FinTech"
+industry: ""
+
+# Target audience description (used for subreddit discovery)
+# Example: "CTOs and engineering leaders at mid-size companies"
+target_audience: ""
+
 # Voice and tone guidelines
 voice:
   tone: neutral

@@ -208,23 +208,40 @@ class RedditSource:
         return any(kw.lower() in text for kw in keywords)
 
 
-def get_subreddits_for_brand(brand_config: dict) -> list[str]:
-    """Get subreddits from brand config or auto-suggest.
+def get_subreddits_for_brand(brand_config: dict, use_discovery: bool = True) -> list[str]:
+    """Get subreddits from brand config, discovery, or fallback.
 
-    Looks for:
+    Priority:
     1. brand_config["subreddits"] - explicit list
-    2. brand_config["keywords"] - auto-suggest based on these
+    2. Discovery API (search + LLM) - if industry/keywords set
+    3. Keyword-based suggestion - simple fallback
     """
-    # Explicit subreddits
+    # Explicit subreddits always take priority
     explicit = brand_config.get("subreddits", [])
     if explicit:
         return explicit
 
-    # Auto-suggest from keywords
+    # Try discovery if we have enough context
+    if use_discovery:
+        has_context = (
+            brand_config.get("industry")
+            or brand_config.get("keywords")
+            or brand_config.get("target_audience")
+        )
+        if has_context:
+            try:
+                from brand_os.signals.sources.reddit_discover import discover_subreddits_for_brand
+                discovered = discover_subreddits_for_brand(brand_config)
+                if discovered:
+                    return discovered[:10]  # Limit to top 10
+            except Exception as e:
+                print(f"Subreddit discovery failed: {e}")
+
+    # Fallback: simple keyword-based suggestion
     keywords = brand_config.get("keywords", [])
     if keywords:
         source = RedditSource()
         return source.suggest_subreddits(keywords)
 
-    # Default tech/business
+    # Default
     return ["technology", "business", "startups"]
