@@ -110,9 +110,21 @@ if STATEMACHINE_AVAILABLE:
             get_decision_log().update(self.decision)
 
         def _notify(self, message: str) -> None:
-            """Send notification (placeholder for Slack/email integration)."""
-            # TODO: Implement notification via slack-sdk or email
-            pass
+            """Send notification via Slack webhook."""
+            import os
+
+            webhook_url = os.getenv("SLACK_WEBHOOK_URL")
+            if not webhook_url:
+                logger.info("Approval notification: %s", message)
+                return
+            try:
+                httpx.post(
+                    webhook_url,
+                    json={"text": f"[BrandOS] {message}"},
+                    timeout=10,
+                )
+            except Exception:
+                pass  # Best-effort notification
 
 else:
     # Fallback implementation without statemachine dependency

@@ -17,3 +17,8 @@ venv/
 dist/
 build/
 *.egg-info/
+
+# Ralph Wiggum
+logs/ralph/
+state/
+*.tmp
