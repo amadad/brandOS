@@ -22,3 +22,6 @@ build/
 logs/ralph/
 state/
 *.tmp
+
+# Night Nurse
+logs/night-nurse.log

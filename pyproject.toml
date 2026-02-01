@@ -58,6 +58,7 @@ publish = [
 server = [
     "fastapi>=0.115",
     "uvicorn>=0.32",
+    "fastmcp<3",
 ]
 email = [
     "resend>=2.0",
