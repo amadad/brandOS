@@ -29,7 +29,7 @@
 
 ## 6. Tests
 - [x] 6.1 Test `load_voice_exemplars()`: parses good/bad examples from well-formed voice-guide
-- [ ] 6.2 Test `load_voice_exemplars()`: returns None for missing/empty file
+- [x] 6.2 Test `load_voice_exemplars()`: returns None for missing/empty file
 - [ ] 6.3 Test `load_voice_exemplars()`: respects max 3 examples + 300 char limit
 - [ ] 6.4 Test `_build_voice_context()`: includes exemplars when provided
 - [ ] 6.5 Test `_build_voice_context()`: respects 1500 char total budget

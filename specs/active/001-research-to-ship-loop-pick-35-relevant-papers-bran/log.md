@@ -70,3 +70,7 @@ Result: ✓ Complete
 ### Iteration 17 - 04:14:04
 Task: 6.1 Test `load_voice_exemplars()`: parses good/bad examples from well-formed voice-guide
 Result: ✓ Complete
+
+### Iteration 18 - 04:14:17
+Task: 6.2 Test `load_voice_exemplars()`: returns None for missing/empty file
+Result: ✓ Complete
