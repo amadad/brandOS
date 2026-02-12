@@ -66,3 +66,7 @@ Result: ✓ Complete
 ### Iteration 16 - 04:13:43
 Task: 5.3 Verify the empty template returns `None` from `load_voice_exemplars()`
 Result: ✓ Complete
+
+### Iteration 17 - 04:14:04
+Task: 6.1 Test `load_voice_exemplars()`: parses good/bad examples from well-formed voice-guide
+Result: ✓ Complete

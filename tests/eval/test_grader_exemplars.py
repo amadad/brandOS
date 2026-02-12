@@ -1,6 +1,37 @@
 from __future__ import annotations
 
 
+def test_load_voice_exemplars_parses_well_formed_examples(
+    monkeypatch, tmp_path
+) -> None:
+    from brand_os.eval import grader
+
+    brand_dir = tmp_path / "acme"
+    voice_guide = brand_dir / "references" / "voice-guide.md"
+    voice_guide.parent.mkdir(parents=True)
+    voice_guide.write_text(
+        """## Examples
+
+### Good Example
+> We don't just ship features - we ship outcomes.
+
+### What to Avoid
+> Our industry-leading platform leverages cutting-edge AI.
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(grader, "get_brand_dir", lambda _brand: brand_dir)
+
+    result = grader.load_voice_exemplars("acme")
+
+    assert result is not None
+    assert result.good_examples == ["We don't just ship features - we ship outcomes."]
+    assert result.bad_examples == [
+        "Our industry-leading platform leverages cutting-edge AI."
+    ]
+
+
 def test_load_voice_exemplars_template_returns_none() -> None:
     from brand_os.eval import grader
 
