@@ -14,3 +14,7 @@ Result: ✓ Complete
 ### Iteration 3 - 04:07:16
 Task: 1.3 Handle edge cases: missing file, empty file, no blockquotes, malformed markdown
 Result: ✓ Complete
+
+### Iteration 4 - 04:07:47
+Task: 1.4 Enforce limits: max 3 good + 3 bad examples, 300 chars each
+Result: ✓ Complete

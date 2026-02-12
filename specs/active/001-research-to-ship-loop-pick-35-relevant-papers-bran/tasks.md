@@ -5,7 +5,7 @@
 - [x] 1.1 Add `VoiceExemplars` dataclass to `src/brand_os/eval/grader.py`
 - [x] 1.2 Implement `load_voice_exemplars(brand: str) -> VoiceExemplars | None` with markdown parsing
 - [x] 1.3 Handle edge cases: missing file, empty file, no blockquotes, malformed markdown
-- [ ] 1.4 Enforce limits: max 3 good + 3 bad examples, 300 chars each
+- [x] 1.4 Enforce limits: max 3 good + 3 bad examples, 300 chars each
 
 ## 2. Voice Context Extension
 - [ ] 2.1 Extend `_build_voice_context()` to accept optional `VoiceExemplars` parameter
