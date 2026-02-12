@@ -30,3 +30,7 @@ Result: ✓ Complete
 ### Iteration 7 - 04:09:39
 Task: 2.3 Implement token budget: 500 chars definition + 500 chars good + 500 chars bad = 1500 total cap
 Result: ✓ Complete
+
+### Iteration 8 - 04:09:56
+Task: 2.4 Update the instruction line to reference both guidelines and examples
+Result: ✓ Complete
