@@ -215,11 +215,27 @@ def test_build_voice_context_respects_1500_char_total_budget(monkeypatch) -> Non
     assert context.startswith("## Brand Voice Definition (acme)\n- Tone: ")
 
 
-def test_grade_content_prompt_renders_voice_exemplars_when_present(monkeypatch) -> None:
+def test_grade_content_prompt_renders_voice_exemplars_when_present(
+    monkeypatch, tmp_path
+) -> None:
     from brand_os.eval import grader
     from brand_os.eval.rubric import Rubric, RubricDimension
 
     captured: dict[str, str] = {}
+    brand_dir = tmp_path / "acme"
+    voice_guide = brand_dir / "references" / "voice-guide.md"
+    voice_guide.parent.mkdir(parents=True)
+    voice_guide.write_text(
+        """## Examples
+
+### Good Example
+> We ship outcomes, not just features.
+
+### What to Avoid
+> Our industry-leading platform synergizes workflows.
+""",
+        encoding="utf-8",
+    )
 
     def _fake_complete_json(*, prompt: str, system: str, default: dict):
         captured["prompt"] = prompt
@@ -239,15 +255,7 @@ def test_grade_content_prompt_renders_voice_exemplars_when_present(monkeypatch) 
         "load_brand_config",
         lambda _brand: {"voice": {"tone": "bold", "vocabulary": "technical"}},
     )
-    monkeypatch.setattr(
-        grader,
-        "load_voice_exemplars",
-        lambda _brand: grader.VoiceExemplars(
-            good_examples=["We ship outcomes, not just features."],
-            bad_examples=["Our industry-leading platform synergizes workflows."],
-            raw_text="raw",
-        ),
-    )
+    monkeypatch.setattr(grader, "get_brand_dir", lambda _brand: brand_dir)
 
     rubric = Rubric(
         name="test",

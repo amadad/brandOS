@@ -86,3 +86,7 @@ Result: ✓ Complete
 ### Iteration 21 - 04:15:45
 Task: 6.5 Test `_build_voice_context()`: respects 1500 char total budget
 Result: ✓ Complete
+
+### Iteration 22 - 04:16:13
+Task: 6.6 Test `grade_content()`: prompt includes exemplars when brand has voice-guide
+Result: ✓ Complete
