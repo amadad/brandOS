@@ -90,3 +90,7 @@ Result: ✓ Complete
 ### Iteration 22 - 04:16:13
 Task: 6.6 Test `grade_content()`: prompt includes exemplars when brand has voice-guide
 Result: ✓ Complete
+
+### Iteration 23 - 04:16:37
+Task: 6.7 Test `grade_content()`: backward compatible when brand has no voice-guide
+Result: ✓ Complete
