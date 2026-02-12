@@ -82,3 +82,7 @@ Result: ✓ Complete
 ### Iteration 20 - 04:14:54
 Task: 6.4 Test `_build_voice_context()`: includes exemplars when provided
 Result: ✓ Complete
+
+### Iteration 21 - 04:15:45
+Task: 6.5 Test `_build_voice_context()`: respects 1500 char total budget
+Result: ✓ Complete

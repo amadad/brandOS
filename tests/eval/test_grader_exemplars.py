@@ -187,6 +187,34 @@ def test_build_voice_context_includes_exemplars_when_provided(monkeypatch) -> No
     assert "> Our industry-leading platform synergizes workflows." in context
 
 
+def test_build_voice_context_respects_1500_char_total_budget(monkeypatch) -> None:
+    from brand_os.eval import grader
+
+    monkeypatch.setattr(
+        grader,
+        "load_brand_config",
+        lambda _brand: {
+            "voice": {
+                "tone": "T" * 1200,
+                "vocabulary": "technical",
+                "rules": ["Never use passive voice"],
+            }
+        },
+    )
+
+    context = grader._build_voice_context(
+        "acme",
+        exemplars=grader.VoiceExemplars(
+            good_examples=["G" * 1200],
+            bad_examples=["B" * 1200],
+            raw_text="raw",
+        ),
+    )
+
+    assert len(context) == 1500
+    assert context.startswith("## Brand Voice Definition (acme)\n- Tone: ")
+
+
 def test_grade_content_prompt_renders_voice_exemplars_when_present(monkeypatch) -> None:
     from brand_os.eval import grader
     from brand_os.eval.rubric import Rubric, RubricDimension

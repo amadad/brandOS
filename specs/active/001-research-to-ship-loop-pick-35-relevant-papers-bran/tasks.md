@@ -32,7 +32,7 @@
 - [x] 6.2 Test `load_voice_exemplars()`: returns None for missing/empty file
 - [x] 6.3 Test `load_voice_exemplars()`: respects max 3 examples + 300 char limit
 - [x] 6.4 Test `_build_voice_context()`: includes exemplars when provided
-- [ ] 6.5 Test `_build_voice_context()`: respects 1500 char total budget
+- [x] 6.5 Test `_build_voice_context()`: respects 1500 char total budget
 - [ ] 6.6 Test `grade_content()`: prompt includes exemplars when brand has voice-guide
 - [ ] 6.7 Test `grade_content()`: backward compatible when brand has no voice-guide
 - [ ] 6.8 Test `_improve_content()`: healing prompt includes exemplars
