@@ -367,8 +367,8 @@ def grade_content(
         prompt_parts.extend(["", "## Context", context])
 
     if brand:
-        load_voice_exemplars(brand)
-        voice_context = _build_voice_context(brand)
+        exemplars = load_voice_exemplars(brand)
+        voice_context = _build_voice_context(brand, exemplars)
         if voice_context:
             # Append after any existing `context` block (if present).
             prompt_parts.extend(["", voice_context])

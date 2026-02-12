@@ -15,7 +15,7 @@
 
 ## 3. Grading Integration
 - [x] 3.1 Update `grade_content()` to call `load_voice_exemplars()` when `brand` is provided
-- [ ] 3.2 Pass exemplars to `_build_voice_context()`
+- [x] 3.2 Pass exemplars to `_build_voice_context()`
 - [ ] 3.3 Verify prompt renders correctly with exemplars present and absent
 
 ## 4. Healing Integration
