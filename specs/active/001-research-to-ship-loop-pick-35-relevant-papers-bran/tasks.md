@@ -8,7 +8,7 @@
 - [x] 1.4 Enforce limits: max 3 good + 3 bad examples, 300 chars each
 
 ## 2. Voice Context Extension
-- [ ] 2.1 Extend `_build_voice_context()` to accept optional `VoiceExemplars` parameter
+- [x] 2.1 Extend `_build_voice_context()` to accept optional `VoiceExemplars` parameter
 - [ ] 2.2 Format exemplars as `### On-Brand Examples` and `### Off-Brand Examples` sections
 - [ ] 2.3 Implement token budget: 500 chars definition + 500 chars good + 500 chars bad = 1500 total cap
 - [ ] 2.4 Update the instruction line to reference both guidelines and examples

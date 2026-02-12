@@ -150,7 +150,9 @@ Output JSON with:
 - suggestions: array of improvement suggestions"""
 
 
-def _build_voice_context(brand: str) -> str:
+def _build_voice_context(
+    brand: str, exemplars: VoiceExemplars | None = None
+) -> str:
     """Build a compact brand voice definition for grading prompts.
 
     Returns an empty string if the brand cannot be loaded or voice is empty.

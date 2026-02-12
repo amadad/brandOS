@@ -18,3 +18,7 @@ Result: ✓ Complete
 ### Iteration 4 - 04:07:47
 Task: 1.4 Enforce limits: max 3 good + 3 bad examples, 300 chars each
 Result: ✓ Complete
+
+### Iteration 5 - 04:08:07
+Task: 2.1 Extend `_build_voice_context()` to accept optional `VoiceExemplars` parameter
+Result: ✓ Complete
