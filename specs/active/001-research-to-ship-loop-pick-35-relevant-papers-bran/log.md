@@ -78,3 +78,7 @@ Result: ✓ Complete
 ### Iteration 19 - 04:14:36
 Task: 6.3 Test `load_voice_exemplars()`: respects max 3 examples + 300 char limit
 Result: ✓ Complete
+
+### Iteration 20 - 04:14:54
+Task: 6.4 Test `_build_voice_context()`: includes exemplars when provided
+Result: ✓ Complete

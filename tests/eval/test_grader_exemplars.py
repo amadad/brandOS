@@ -162,6 +162,31 @@ def test_load_voice_exemplars_enforces_max_counts_and_length(
     assert result.bad_examples[1] == "B" * 300
 
 
+def test_build_voice_context_includes_exemplars_when_provided(monkeypatch) -> None:
+    from brand_os.eval import grader
+
+    monkeypatch.setattr(
+        grader,
+        "load_brand_config",
+        lambda _brand: {"voice": {"tone": "bold", "vocabulary": "technical"}},
+    )
+
+    context = grader._build_voice_context(
+        "acme",
+        exemplars=grader.VoiceExemplars(
+            good_examples=["We ship outcomes, not just features."],
+            bad_examples=["Our industry-leading platform synergizes workflows."],
+            raw_text="raw",
+        ),
+    )
+
+    assert "## Brand Voice Definition (acme)" in context
+    assert "### On-Brand Examples" in context
+    assert "> We ship outcomes, not just features." in context
+    assert "### Off-Brand Examples" in context
+    assert "> Our industry-leading platform synergizes workflows." in context
+
+
 def test_grade_content_prompt_renders_voice_exemplars_when_present(monkeypatch) -> None:
     from brand_os.eval import grader
     from brand_os.eval.rubric import Rubric, RubricDimension
