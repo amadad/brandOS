@@ -74,3 +74,7 @@ Result: ✓ Complete
 ### Iteration 18 - 04:14:17
 Task: 6.2 Test `load_voice_exemplars()`: returns None for missing/empty file
 Result: ✓ Complete
+
+### Iteration 19 - 04:14:36
+Task: 6.3 Test `load_voice_exemplars()`: respects max 3 examples + 300 char limit
+Result: ✓ Complete
