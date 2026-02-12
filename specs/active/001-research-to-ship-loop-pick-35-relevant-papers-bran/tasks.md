@@ -19,7 +19,7 @@
 - [x] 3.3 Verify prompt renders correctly with exemplars present and absent
 
 ## 4. Healing Integration
-- [ ] 4.1 Update `_improve_content()` to load and inject exemplars when `brand` is provided
+- [x] 4.1 Update `_improve_content()` to load and inject exemplars when `brand` is provided
 - [ ] 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
 
 ## 5. Template Update

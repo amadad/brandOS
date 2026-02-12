@@ -46,3 +46,7 @@ Result: ✓ Complete
 ### Iteration 11 - 04:11:16
 Task: 3.3 Verify prompt renders correctly with exemplars present and absent
 Result: ✓ Complete
+
+### Iteration 12 - 04:12:02
+Task: 4.1 Update `_improve_content()` to load and inject exemplars when `brand` is provided
+Result: ✓ Complete

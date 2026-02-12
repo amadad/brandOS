@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from brand_os.core.llm import complete
-from brand_os.eval.grader import GradeResult, _build_voice_context, grade_content
+from brand_os.eval.grader import (
+    GradeResult,
+    _build_voice_context,
+    grade_content,
+    load_voice_exemplars,
+)
 from brand_os.eval.rubric import Rubric
 
 
@@ -141,7 +146,8 @@ def _improve_content(
         )
 
     if brand:
-        voice_context = _build_voice_context(brand)
+        exemplars = load_voice_exemplars(brand)
+        voice_context = _build_voice_context(brand, exemplars)
         if voice_context:
             prompt_parts.extend(["", voice_context])
 
