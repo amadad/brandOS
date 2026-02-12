@@ -123,3 +123,95 @@ def test_load_voice_exemplars_enforces_max_counts_and_length(
     assert all(len(example) <= 300 for example in result.bad_examples)
     assert result.good_examples[1] == "G" * 300
     assert result.bad_examples[1] == "B" * 300
+
+
+def test_grade_content_prompt_renders_voice_exemplars_when_present(monkeypatch) -> None:
+    from brand_os.eval import grader
+    from brand_os.eval.rubric import Rubric, RubricDimension
+
+    captured: dict[str, str] = {}
+
+    def _fake_complete_json(*, prompt: str, system: str, default: dict):
+        captured["prompt"] = prompt
+        captured["system"] = system
+        return {
+            "dimension_scores": [
+                {"name": "brand_voice", "score": 1.0, "feedback": "ok", "passed": True}
+            ],
+            "red_flags_found": [],
+            "summary": "ok",
+            "suggestions": [],
+        }
+
+    monkeypatch.setattr(grader, "complete_json", _fake_complete_json)
+    monkeypatch.setattr(
+        grader,
+        "load_brand_config",
+        lambda _brand: {"voice": {"tone": "bold", "vocabulary": "technical"}},
+    )
+    monkeypatch.setattr(
+        grader,
+        "load_voice_exemplars",
+        lambda _brand: grader.VoiceExemplars(
+            good_examples=["We ship outcomes, not just features."],
+            bad_examples=["Our industry-leading platform synergizes workflows."],
+            raw_text="raw",
+        ),
+    )
+
+    rubric = Rubric(
+        name="test",
+        dimensions=[
+            RubricDimension(name="brand_voice", description="Matches brand voice", weight=1.0)
+        ],
+    )
+
+    grader.grade_content("hello", rubric=rubric, brand="acme")
+
+    prompt = captured["prompt"]
+    assert "## Brand Voice Definition (acme)" in prompt
+    assert "### On-Brand Examples" in prompt
+    assert "> We ship outcomes, not just features." in prompt
+    assert "### Off-Brand Examples" in prompt
+    assert "> Our industry-leading platform synergizes workflows." in prompt
+
+
+def test_grade_content_prompt_omits_exemplar_sections_when_absent(monkeypatch) -> None:
+    from brand_os.eval import grader
+    from brand_os.eval.rubric import Rubric, RubricDimension
+
+    captured: dict[str, str] = {}
+
+    def _fake_complete_json(*, prompt: str, system: str, default: dict):
+        captured["prompt"] = prompt
+        captured["system"] = system
+        return {
+            "dimension_scores": [
+                {"name": "brand_voice", "score": 1.0, "feedback": "ok", "passed": True}
+            ],
+            "red_flags_found": [],
+            "summary": "ok",
+            "suggestions": [],
+        }
+
+    monkeypatch.setattr(grader, "complete_json", _fake_complete_json)
+    monkeypatch.setattr(
+        grader,
+        "load_brand_config",
+        lambda _brand: {"voice": {"tone": "bold", "vocabulary": "technical"}},
+    )
+    monkeypatch.setattr(grader, "load_voice_exemplars", lambda _brand: None)
+
+    rubric = Rubric(
+        name="test",
+        dimensions=[
+            RubricDimension(name="brand_voice", description="Matches brand voice", weight=1.0)
+        ],
+    )
+
+    grader.grade_content("hello", rubric=rubric, brand="acme")
+
+    prompt = captured["prompt"]
+    assert "## Brand Voice Definition (acme)" in prompt
+    assert "### On-Brand Examples" not in prompt
+    assert "### Off-Brand Examples" not in prompt

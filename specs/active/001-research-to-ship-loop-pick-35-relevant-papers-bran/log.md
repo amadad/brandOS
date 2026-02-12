@@ -42,3 +42,7 @@ Result: ✓ Complete
 ### Iteration 10 - 04:10:35
 Task: 3.2 Pass exemplars to `_build_voice_context()`
 Result: ✓ Complete
+
+### Iteration 11 - 04:11:16
+Task: 3.3 Verify prompt renders correctly with exemplars present and absent
+Result: ✓ Complete
