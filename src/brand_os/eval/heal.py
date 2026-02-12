@@ -149,6 +149,17 @@ def _improve_content(
         exemplars = load_voice_exemplars(brand)
         voice_context = _build_voice_context(brand, exemplars)
         if voice_context:
+            # Use healing-specific exemplar labels for clearer rewrite targeting.
+            voice_context = (
+                voice_context.replace(
+                    "### On-Brand Examples",
+                    "### Voice Reference (target style)",
+                )
+                .replace(
+                    "### Off-Brand Examples",
+                    "### Voice Anti-Pattern (avoid this style)",
+                )
+            )
             prompt_parts.extend(["", voice_context])
 
     prompt_parts.extend(

@@ -20,7 +20,7 @@
 
 ## 4. Healing Integration
 - [x] 4.1 Update `_improve_content()` to load and inject exemplars when `brand` is provided
-- [ ] 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
+- [x] 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
 
 ## 5. Template Update
 - [ ] 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure

@@ -50,3 +50,7 @@ Result: ✓ Complete
 ### Iteration 12 - 04:12:02
 Task: 4.1 Update `_improve_content()` to load and inject exemplars when `brand` is provided
 Result: ✓ Complete
+
+### Iteration 13 - 04:12:34
+Task: 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
+Result: ✓ Complete
