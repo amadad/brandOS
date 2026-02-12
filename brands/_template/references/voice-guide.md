@@ -40,6 +40,10 @@ Phrases for encouraging engagement:
 
 ## Examples
 
+<!-- These examples are parsed by the evaluator and injected into grading/healing
+     prompts to calibrate the `brand_voice` score. -->
+<!-- Add 1-3 examples in each section as Markdown blockquotes (`> ...`).
+     Keep each example to a single short paragraph. -->
 Add 1-3 examples in each section below as Markdown blockquotes (`> ...`).
 Keep each example to a single short paragraph.
 

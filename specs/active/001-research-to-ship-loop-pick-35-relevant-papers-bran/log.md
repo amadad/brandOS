@@ -58,3 +58,7 @@ Result: ✓ Complete
 ### Iteration 14 - 04:12:49
 Task: 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure
 Result: ✓ Complete
+
+### Iteration 15 - 04:13:01
+Task: 5.2 Add HTML comments explaining how exemplars are used by the grader
+Result: ✓ Complete
