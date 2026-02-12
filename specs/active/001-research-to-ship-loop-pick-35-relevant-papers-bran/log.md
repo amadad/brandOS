@@ -102,3 +102,5 @@ Result: ✓ Complete
 ### Iteration 25 - 04:17:31
 Task: 7.1 `uv run ruff check src/` — no lint errors
 Result: ✓ Complete
+
+## Result: PARTIAL (3 remaining)
