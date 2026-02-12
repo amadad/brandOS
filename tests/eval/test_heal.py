@@ -89,16 +89,24 @@ def test_improve_content_formats_voice_exemplars_for_healing_prompt(monkeypatch)
         return "IMPROVED"
 
     monkeypatch.setattr(heal, "complete", _fake_complete)
-    monkeypatch.setattr(heal, "load_voice_exemplars", lambda _brand: object())
+    monkeypatch.setattr(
+        heal,
+        "load_voice_exemplars",
+        lambda _brand: grader.VoiceExemplars(
+            good_examples=["We ship outcomes, not outputs."],
+            bad_examples=["Our synergistic platform leverages AI."],
+            raw_text="",
+        ),
+    )
     monkeypatch.setattr(
         heal,
         "_build_voice_context",
         lambda _brand, _exemplars: (
             "## Brand Voice Definition (acme)\n"
             "### On-Brand Examples\n"
-            "> good\n"
+            "> We ship outcomes, not outputs.\n"
             "### Off-Brand Examples\n"
-            "> bad"
+            "> Our synergistic platform leverages AI."
         ),
     )
 
@@ -124,5 +132,7 @@ def test_improve_content_formats_voice_exemplars_for_healing_prompt(monkeypatch)
     prompt = captured["prompt"]
     assert "### Voice Reference (target style)" in prompt
     assert "### Voice Anti-Pattern (avoid this style)" in prompt
+    assert "We ship outcomes, not outputs." in prompt
+    assert "Our synergistic platform leverages AI." in prompt
     assert "### On-Brand Examples" not in prompt
     assert "### Off-Brand Examples" not in prompt

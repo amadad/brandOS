@@ -35,7 +35,7 @@
 - [x] 6.5 Test `_build_voice_context()`: respects 1500 char total budget
 - [x] 6.6 Test `grade_content()`: prompt includes exemplars when brand has voice-guide
 - [x] 6.7 Test `grade_content()`: backward compatible when brand has no voice-guide
-- [ ] 6.8 Test `_improve_content()`: healing prompt includes exemplars
+- [x] 6.8 Test `_improve_content()`: healing prompt includes exemplars
 
 ## 7. Verification
 - [ ] 7.1 `uv run ruff check src/` — no lint errors
