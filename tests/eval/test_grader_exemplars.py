@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 
+def test_load_voice_exemplars_template_returns_none() -> None:
+    from brand_os.eval import grader
+
+    assert grader.load_voice_exemplars("_template") is None
+
+
 def test_load_voice_exemplars_missing_file_returns_none(monkeypatch, tmp_path) -> None:
     from brand_os.eval import grader
 

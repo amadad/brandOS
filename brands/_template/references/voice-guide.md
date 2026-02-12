@@ -49,11 +49,11 @@ Keep each example to a single short paragraph.
 
 ### Good Example
 
-> [Your on-brand example here]
+<!-- Add your on-brand example as a Markdown blockquote (`> ...`). -->
 
 ### What to Avoid
 
-> [Your off-brand example here]
+<!-- Add your off-brand example as a Markdown blockquote (`> ...`). -->
 
 ## Platform-Specific Notes
 

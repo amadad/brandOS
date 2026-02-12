@@ -62,3 +62,7 @@ Result: ✓ Complete
 ### Iteration 15 - 04:13:01
 Task: 5.2 Add HTML comments explaining how exemplars are used by the grader
 Result: ✓ Complete
+
+### Iteration 16 - 04:13:43
+Task: 5.3 Verify the empty template returns `None` from `load_voice_exemplars()`
+Result: ✓ Complete

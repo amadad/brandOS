@@ -25,7 +25,7 @@
 ## 5. Template Update
 - [x] 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure
 - [x] 5.2 Add HTML comments explaining how exemplars are used by the grader
-- [ ] 5.3 Verify the empty template returns `None` from `load_voice_exemplars()`
+- [x] 5.3 Verify the empty template returns `None` from `load_voice_exemplars()`
 
 ## 6. Tests
 - [ ] 6.1 Test `load_voice_exemplars()`: parses good/bad examples from well-formed voice-guide
