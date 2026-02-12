@@ -40,13 +40,16 @@ Phrases for encouraging engagement:
 
 ## Examples
 
+Add 1-3 examples in each section below as Markdown blockquotes (`> ...`).
+Keep each example to a single short paragraph.
+
 ### Good Example
 
-> [Include a piece of content that exemplifies your voice]
+> [Your on-brand example here]
 
 ### What to Avoid
 
-> [Include a counter-example]
+> [Your off-brand example here]
 
 ## Platform-Specific Notes
 

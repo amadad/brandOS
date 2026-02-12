@@ -23,7 +23,7 @@
 - [x] 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
 
 ## 5. Template Update
-- [ ] 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure
+- [x] 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure
 - [ ] 5.2 Add HTML comments explaining how exemplars are used by the grader
 - [ ] 5.3 Verify the empty template returns `None` from `load_voice_exemplars()`
 

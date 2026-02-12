@@ -54,3 +54,7 @@ Result: ✓ Complete
 ### Iteration 13 - 04:12:34
 Task: 4.2 Format exemplars as "Voice Reference (target style)" / "Voice Anti-Pattern" in healing prompt
 Result: ✓ Complete
+
+### Iteration 14 - 04:12:49
+Task: 5.1 Rewrite `brands/_template/references/voice-guide.md` with machine-parseable structure
+Result: ✓ Complete
