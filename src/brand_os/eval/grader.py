@@ -97,6 +97,13 @@ def load_voice_exemplars(brand: str) -> VoiceExemplars | None:
             elif level <= 3:
                 current_section = None
             continue
+        elif line.lstrip().startswith("#"):
+            # Treat malformed heading syntax as a hard section break.
+            # This avoids accidentally attributing later blockquotes
+            # to the previous section.
+            _flush_quote()
+            current_section = None
+            continue
 
         if current_section is None:
             continue
