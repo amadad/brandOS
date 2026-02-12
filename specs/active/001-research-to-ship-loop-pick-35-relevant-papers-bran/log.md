@@ -26,3 +26,7 @@ Result: ✓ Complete
 ### Iteration 6 - 04:08:34
 Task: 2.2 Format exemplars as `### On-Brand Examples` and `### Off-Brand Examples` sections
 Result: ✓ Complete
+
+### Iteration 7 - 04:09:39
+Task: 2.3 Implement token budget: 500 chars definition + 500 chars good + 500 chars bad = 1500 total cap
+Result: ✓ Complete

@@ -218,34 +218,99 @@ def _build_voice_context(
     if not bullets:
         return ""
 
-    context_parts: list[str] = [
-        f"## Brand Voice Definition ({brand})",
-        *bullets,
-    ]
+    def _truncate_text(text: str, limit: int) -> str:
+        if len(text) <= limit:
+            return text
+        if limit <= 3:
+            return text[:limit]
+        return text[: limit - 3].rstrip() + "..."
 
-    if exemplars and exemplars.good_examples:
-        context_parts.extend(["", "### On-Brand Examples"])
-        for example in exemplars.good_examples:
-            context_parts.append(f"> {example}")
+    def _truncate_examples(examples: list[str], limit: int) -> list[str]:
+        if limit <= 0:
+            return []
+        out: list[str] = []
+        remaining = limit
+        for example in examples:
+            if remaining <= 0:
+                break
+            example = (example or "").strip()
+            if not example:
+                continue
+            if len(example) <= remaining:
+                out.append(example)
+                remaining -= len(example)
+                continue
+            out.append(_truncate_text(example, remaining))
+            break
+        return out
 
-    if exemplars and exemplars.bad_examples:
-        context_parts.extend(["", "### Off-Brand Examples"])
-        for example in exemplars.bad_examples:
-            context_parts.append(f"> {example}")
+    def _reduce_examples_from_end(examples: list[str], reduce_by: int) -> list[str]:
+        if reduce_by <= 0 or not examples:
+            return examples
+        out = examples[:]
+        remaining = reduce_by
+        while remaining > 0 and out:
+            last = out[-1]
+            if len(last) <= remaining:
+                remaining -= len(last)
+                out.pop()
+            else:
+                out[-1] = _truncate_text(last, len(last) - remaining)
+                remaining = 0
+        return out
 
-    context_parts.extend(
-        [
-            "",
-            "Evaluate the brand_voice dimension against these specific guidelines.",
-        ]
+    definition_block = _truncate_text(
+        "\n".join([f"## Brand Voice Definition ({brand})", *bullets]), 500
     )
-    context = "\n".join(context_parts)
+    good_examples = _truncate_examples(
+        exemplars.good_examples if exemplars else [],
+        500,
+    )
+    bad_examples = _truncate_examples(
+        exemplars.bad_examples if exemplars else [],
+        500,
+    )
 
-    # Keep under 500 characters to avoid prompt bloat.
-    if len(context) > 500:
-        context = context[:497].rstrip() + "..."
+    def _render_context(
+        definition: str, good: list[str], bad: list[str]
+    ) -> str:
+        context_parts: list[str] = [definition]
+        if good:
+            context_parts.extend(["", "### On-Brand Examples"])
+            for example in good:
+                context_parts.append(f"> {example}")
+        if bad:
+            context_parts.extend(["", "### Off-Brand Examples"])
+            for example in bad:
+                context_parts.append(f"> {example}")
+        context_parts.extend(
+            [
+                "",
+                "Evaluate the brand_voice dimension against these specific guidelines.",
+            ]
+        )
+        return "\n".join(context_parts)
 
-    return context
+    context = _render_context(definition_block, good_examples, bad_examples)
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        bad_examples = _reduce_examples_from_end(bad_examples, overflow)
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        good_examples = _reduce_examples_from_end(good_examples, overflow)
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        definition_block = _truncate_text(
+            definition_block,
+            max(0, len(definition_block) - overflow),
+        )
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    return context[:1500]
 
 
 def grade_content(
