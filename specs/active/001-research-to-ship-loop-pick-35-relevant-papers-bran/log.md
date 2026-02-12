@@ -98,3 +98,7 @@ Result: ✓ Complete
 ### Iteration 24 - 04:17:17
 Task: 6.8 Test `_improve_content()`: healing prompt includes exemplars
 Result: ✓ Complete
+
+### Iteration 25 - 04:17:31
+Task: 7.1 `uv run ruff check src/` — no lint errors
+Result: ✓ Complete

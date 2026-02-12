@@ -286,7 +286,10 @@ def _build_voice_context(
         context_parts.extend(
             [
                 "",
-                "Evaluate the brand_voice dimension against these specific guidelines and examples.",
+                (
+                    "Evaluate the brand_voice dimension against these specific "
+                    "guidelines and examples."
+                ),
             ]
         )
         return "\n".join(context_parts)

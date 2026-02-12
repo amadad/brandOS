@@ -38,7 +38,7 @@
 - [x] 6.8 Test `_improve_content()`: healing prompt includes exemplars
 
 ## 7. Verification
-- [ ] 7.1 `uv run ruff check src/` — no lint errors
+- [x] 7.1 `uv run ruff check src/` — no lint errors
 - [ ] 7.2 `uv run ruff format src/` — code formatted
 - [ ] 7.3 `uv run pytest tests/eval/` — all tests pass
 - [ ] 7.4 `uv run pytest tests/` — full suite passes (no regressions)
