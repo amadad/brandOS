@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import dataclasses
+import re
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from brand_os.core.brands import load_brand_config
+from brand_os.core.brands import get_brand_dir, load_brand_config
 from brand_os.core.llm import complete_json
 from brand_os.eval.rubric import Rubric, get_default_rubric
 
@@ -39,6 +40,86 @@ class VoiceExemplars:
     good_examples: list[str]
     bad_examples: list[str]
     raw_text: str
+
+
+def load_voice_exemplars(brand: str) -> VoiceExemplars | None:
+    """Load and parse brand voice exemplars from references/voice-guide.md."""
+    brand = (brand or "").strip()
+    if not brand:
+        return None
+
+    try:
+        voice_guide_path = get_brand_dir(brand) / "references" / "voice-guide.md"
+        if not voice_guide_path.exists():
+            return None
+        raw_text = voice_guide_path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+    if not raw_text.strip():
+        return None
+
+    heading_re = re.compile(r"^\s{0,3}(#{2,6})\s+(.*?)\s*$")
+    quote_re = re.compile(r"^\s{0,3}>\s?(.*)$")
+
+    good_headers = {"good example", "good examples"}
+    bad_headers = {"what to avoid", "bad example", "bad examples"}
+
+    current_section: str | None = None
+    in_quote = False
+    quote_lines: list[str] = []
+    good_examples: list[str] = []
+    bad_examples: list[str] = []
+
+    def _flush_quote() -> None:
+        nonlocal in_quote, quote_lines
+        if not in_quote:
+            return
+        text = "\n".join(quote_lines).strip()
+        if text:
+            if current_section == "good":
+                good_examples.append(text[:300])
+            elif current_section == "bad":
+                bad_examples.append(text[:300])
+        in_quote = False
+        quote_lines = []
+
+    for line in raw_text.splitlines():
+        heading_match = heading_re.match(line)
+        if heading_match:
+            _flush_quote()
+            level = len(heading_match.group(1))
+            heading = heading_match.group(2).strip().lower()
+            if level == 3 and heading in good_headers:
+                current_section = "good"
+            elif level == 3 and heading in bad_headers:
+                current_section = "bad"
+            elif level <= 3:
+                current_section = None
+            continue
+
+        if current_section is None:
+            continue
+
+        quote_match = quote_re.match(line)
+        if quote_match:
+            in_quote = True
+            quote_lines.append(quote_match.group(1).rstrip())
+        else:
+            _flush_quote()
+
+    _flush_quote()
+
+    good_examples = good_examples[:3]
+    bad_examples = bad_examples[:3]
+    if not good_examples and not bad_examples:
+        return None
+
+    return VoiceExemplars(
+        good_examples=good_examples,
+        bad_examples=bad_examples,
+        raw_text=raw_text,
+    )
 
 
 GRADER_SYSTEM = """You are an expert content evaluator.

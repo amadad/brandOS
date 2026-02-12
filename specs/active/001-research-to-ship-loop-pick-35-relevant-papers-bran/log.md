@@ -6,3 +6,7 @@
 ### Iteration 1 - 04:05:33
 Task: 1.1 Add `VoiceExemplars` dataclass to `src/brand_os/eval/grader.py`
 Result: ✓ Complete
+
+### Iteration 2 - 04:06:13
+Task: 1.2 Implement `load_voice_exemplars(brand: str) -> VoiceExemplars | None` with markdown parsing
+Result: ✓ Complete
