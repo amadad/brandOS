@@ -13,19 +13,17 @@ import logging
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
 
 from brand_os.core.config import utc_now
+from brand_os.core.llm import complete_json
 
 logger = logging.getLogger(__name__)
-
-from brand_os.core.llm import complete_json
 
 
 @dataclass
 class SubredditInfo:
     """Discovered subreddit with metadata."""
+
     name: str
     title: str
     description: str
@@ -199,10 +197,7 @@ class SubredditDiscovery:
             sub.relevance_score = self._score_subreddit(sub, keywords or [])
 
         # Filter: minimum subscribers, not dead
-        results = [
-            s for s in results
-            if s.subscribers >= 1000 and s.active_users >= 10
-        ]
+        results = [s for s in results if s.subscribers >= 1000 and s.active_users >= 10]
 
         # Sort by relevance
         results.sort(key=lambda x: x.relevance_score, reverse=True)
@@ -254,6 +249,7 @@ Only include real, active subreddits. No r/ prefix."""
         # Subscriber score (log scale)
         if sub.subscribers > 0:
             import math
+
             score += min(0.3, math.log10(sub.subscribers) / 20)
 
         # Activity score
@@ -279,10 +275,7 @@ Only include real, active subreddits. No r/ prefix."""
 
     def _fetch_json(self, url: str) -> dict:
         """Fetch JSON from URL."""
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": self.user_agent}
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": self.user_agent})
 
         with urllib.request.urlopen(req, timeout=self.timeout) as response:
             return json.loads(response.read().decode())

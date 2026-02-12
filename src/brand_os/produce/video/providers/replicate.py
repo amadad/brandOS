@@ -1,4 +1,5 @@
 """Replicate video generation provider (placeholder)."""
+
 from __future__ import annotations
 
 from typing import Any

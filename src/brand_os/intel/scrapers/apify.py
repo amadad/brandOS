@@ -1,4 +1,5 @@
 """Apify scraper integration."""
+
 from __future__ import annotations
 
 import os
@@ -64,18 +65,20 @@ def _scrape_twitter(handle: str, limit: int) -> list[dict[str, Any]]:
 
     posts = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        posts.append({
-            "platform": "twitter",
-            "id": item.get("id"),
-            "text": item.get("text", item.get("full_text", "")),
-            "created_at": item.get("created_at"),
-            "likes": item.get("favorite_count", item.get("likes", 0)),
-            "retweets": item.get("retweet_count", item.get("retweets", 0)),
-            "replies": item.get("reply_count", item.get("replies", 0)),
-            "views": item.get("views", item.get("impressions", 0)),
-            "url": item.get("url"),
-            "media": item.get("media", []),
-        })
+        posts.append(
+            {
+                "platform": "twitter",
+                "id": item.get("id"),
+                "text": item.get("text", item.get("full_text", "")),
+                "created_at": item.get("created_at"),
+                "likes": item.get("favorite_count", item.get("likes", 0)),
+                "retweets": item.get("retweet_count", item.get("retweets", 0)),
+                "replies": item.get("reply_count", item.get("replies", 0)),
+                "views": item.get("views", item.get("impressions", 0)),
+                "url": item.get("url"),
+                "media": item.get("media", []),
+            }
+        )
 
     return posts
 
@@ -93,17 +96,19 @@ def _scrape_instagram(handle: str, limit: int) -> list[dict[str, Any]]:
 
     posts = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        posts.append({
-            "platform": "instagram",
-            "id": item.get("id"),
-            "text": item.get("caption", ""),
-            "created_at": item.get("timestamp"),
-            "likes": item.get("likesCount", 0),
-            "comments": item.get("commentsCount", 0),
-            "views": item.get("videoViewCount", 0),
-            "url": item.get("url"),
-            "media_type": item.get("type"),
-        })
+        posts.append(
+            {
+                "platform": "instagram",
+                "id": item.get("id"),
+                "text": item.get("caption", ""),
+                "created_at": item.get("timestamp"),
+                "likes": item.get("likesCount", 0),
+                "comments": item.get("commentsCount", 0),
+                "views": item.get("videoViewCount", 0),
+                "url": item.get("url"),
+                "media_type": item.get("type"),
+            }
+        )
 
     return posts
 
@@ -122,15 +127,17 @@ def _scrape_linkedin(handle: str, limit: int) -> list[dict[str, Any]]:
     posts = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
         for post in item.get("posts", []):
-            posts.append({
-                "platform": "linkedin",
-                "id": post.get("urn"),
-                "text": post.get("text", ""),
-                "created_at": post.get("postedAt"),
-                "likes": post.get("numLikes", 0),
-                "comments": post.get("numComments", 0),
-                "reposts": post.get("numShares", 0),
-                "url": post.get("url"),
-            })
+            posts.append(
+                {
+                    "platform": "linkedin",
+                    "id": post.get("urn"),
+                    "text": post.get("text", ""),
+                    "created_at": post.get("postedAt"),
+                    "likes": post.get("numLikes", 0),
+                    "comments": post.get("numComments", 0),
+                    "reposts": post.get("numShares", 0),
+                    "url": post.get("url"),
+                }
+            )
 
     return posts

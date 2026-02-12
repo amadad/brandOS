@@ -15,28 +15,27 @@ from __future__ import annotations
 import asyncio
 import signal
 import sys
-from datetime import datetime, timedelta
-from typing import Any, Callable
+from collections.abc import Callable
+from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from brand_os.core.config import list_brands, load_brand_config, utc_now
 from brand_os.core.decision import (
     Decision,
-    DecisionLog,
     DecisionStatus,
     DecisionType,
     get_decision_log,
     list_decisions,
 )
+from brand_os.core.learning import log_outcome
 from brand_os.core.policy import (
     BrandPolicy,
-    PolicyEngine,
     PolicyEvaluation,
     PolicyVerdict,
     get_policy_engine,
 )
-from brand_os.core.learning import log_outcome, get_learning_tracker
 
 
 class LoopConfig(BaseModel):
@@ -179,12 +178,9 @@ class AutonomousLoop:
             wait_time = max(0, self.config.signal_fetch_interval - elapsed)
 
             try:
-                await asyncio.wait_for(
-                    self._shutdown_event.wait(),
-                    timeout=wait_time
-                )
+                await asyncio.wait_for(self._shutdown_event.wait(), timeout=wait_time)
                 break  # Shutdown requested
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass  # Continue loop
 
     def _get_active_brands(self) -> list[str]:
@@ -238,8 +234,8 @@ class AutonomousLoop:
 
     async def _fetch_signals(self, brand: str) -> list[Any]:
         """Fetch signals for a brand from configured sources."""
-        from brand_os.signals.sources.rss import RSSSource, DEFAULT_FEEDS
         from brand_os.signals.sources.reddit import RedditSource, get_subreddits_for_brand
+        from brand_os.signals.sources.rss import DEFAULT_FEEDS, RSSSource
 
         # Load brand config
         config = load_brand_config(brand) or {}
@@ -276,7 +272,9 @@ class AutonomousLoop:
                     min_score=10,
                 )
                 all_signals.extend(reddit_signals)
-                self._emit("signals_fetched", brand=brand, source="reddit", count=len(reddit_signals))
+                self._emit(
+                    "signals_fetched", brand=brand, source="reddit", count=len(reddit_signals)
+                )
         except Exception as e:
             self._emit("signal_source_error", brand=brand, source="reddit", error=str(e))
 
@@ -389,7 +387,7 @@ class AutonomousLoop:
 
             # Always write output for audit trail
             write_action = WriteAction()
-            analysis = getattr(self, '_last_analysis', None)
+            analysis = getattr(self, "_last_analysis", None)
             write_result = write_action.execute(decision, analysis)
             outcome["written"] = write_result
 
@@ -487,7 +485,7 @@ class AutonomousLoop:
 
         # Write to file for human review
         write_action = WriteAction()
-        analysis = getattr(self, '_last_analysis', None)
+        analysis = getattr(self, "_last_analysis", None)
         write_action.execute(decision, analysis)
 
         self.decision_log.update(decision)

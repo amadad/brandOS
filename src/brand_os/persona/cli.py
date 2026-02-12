@@ -1,4 +1,5 @@
 """Persona CLI commands."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -17,8 +18,12 @@ console = Console()
 def create(
     description: str = typer.Argument(..., help="Description or name for the persona"),
     name: str | None = typer.Option(None, "--as", "-n", help="Name for the persona"),
-    from_person: bool = typer.Option(False, "--from-person", help="Treat description as a real person's name"),
-    from_role: bool = typer.Option(False, "--from-role", help="Treat description as a professional role"),
+    from_person: bool = typer.Option(
+        False, "--from-person", help="Treat description as a real person's name"
+    ),
+    from_role: bool = typer.Option(
+        False, "--from-role", help="Treat description as a professional role"
+    ),
     format: str = typer.Option("yaml", "--format", "-f", help="Output format: json, yaml"),
 ) -> None:
     """Create a new persona using AI generation."""
@@ -153,7 +158,12 @@ def ask(
 @persona_app.command("export")
 def export(
     name: str = typer.Argument(..., help="Persona name"),
-    to: str = typer.Option("yaml", "--to", "-t", help="Export format: json, yaml, eliza, ollama, hub, v2, system_prompt, markdown"),
+    to: str = typer.Option(
+        "yaml",
+        "--to",
+        "-t",
+        help="Export format: json, yaml, eliza, ollama, hub, v2, system_prompt, markdown",
+    ),
     output: Path | None = typer.Option(None, "--output", "-o", help="Output file path"),
 ) -> None:
     """Export a persona to a specific format."""

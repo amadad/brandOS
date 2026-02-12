@@ -1,4 +1,5 @@
 """Generic web signal provider."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -61,6 +62,7 @@ def _extract_title(html: str) -> str | None:
     match = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
     if match:
         import html as html_module
+
         return html_module.unescape(match.group(1)).strip()
     return None
 
@@ -82,9 +84,11 @@ def _extract_links(html: str, base_url: str) -> list[dict[str, str]]:
 
         # Skip anchors and javascript
         if full_url.startswith(("http://", "https://")):
-            links.append({
-                "url": full_url,
-                "text": text[:100] if text else "",
-            })
+            links.append(
+                {
+                    "url": full_url,
+                    "text": text[:100] if text else "",
+                }
+            )
 
     return links

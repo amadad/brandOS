@@ -1,4 +1,5 @@
 """Activation stage - channel planning and execution."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -53,7 +54,8 @@ ACTIVATION_SYSTEM = """You are a senior marketing activation specialist.
 Based on the creative, develop a detailed activation plan.
 
 Output JSON with:
-- channels: list of channel plans with channel, objective, tactics, content_types, frequency, budget_allocation
+- channels: list of channel plans with channel, objective, tactics, content_types, frequency,
+  budget_allocation
 - calendar: content calendar items with week/date, channel, content_type, topic, notes
 - kpis: list of KPIs with metric, target, channel
 - budget_allocation: dict mapping channels to budget percentages

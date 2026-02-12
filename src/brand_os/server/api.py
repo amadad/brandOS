@@ -1,4 +1,5 @@
 """FastAPI server (optional)."""
+
 from __future__ import annotations
 
 

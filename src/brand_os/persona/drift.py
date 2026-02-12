@@ -1,7 +1,6 @@
 """Persona drift detection - check response consistency."""
-from __future__ import annotations
 
-from typing import Any
+from __future__ import annotations
 
 from pydantic import BaseModel
 
@@ -67,12 +66,14 @@ def detect_drift(
     if context:
         prompt_parts.extend(["## Context", context, ""])
 
-    prompt_parts.extend([
-        "## Response to Analyze",
-        response,
-        "",
-        "Analyze consistency and output JSON.",
-    ])
+    prompt_parts.extend(
+        [
+            "## Response to Analyze",
+            response,
+            "",
+            "Analyze consistency and output JSON.",
+        ]
+    )
 
     prompt = "\n".join(prompt_parts)
 

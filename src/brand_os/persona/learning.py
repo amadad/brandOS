@@ -1,4 +1,5 @@
 """Persona learning and self-improvement."""
+
 from __future__ import annotations
 
 import json
@@ -161,10 +162,10 @@ def suggest_improvements(persona_name: str) -> dict[str, Any]:
 {json.dumps(persona, indent=2)}
 
 ## Critique
-Strengths: {critique.get('strengths', [])}
-Weaknesses: {critique.get('weaknesses', [])}
-Patterns: {critique.get('patterns', [])}
-Recommendations: {critique.get('recommendations', [])}
+Strengths: {critique.get("strengths", [])}
+Weaknesses: {critique.get("weaknesses", [])}
+Patterns: {critique.get("patterns", [])}
+Recommendations: {critique.get("recommendations", [])}
 
 Suggest specific updates to improve the persona."""
 

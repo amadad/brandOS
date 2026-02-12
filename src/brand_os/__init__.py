@@ -3,6 +3,11 @@
 __version__ = "0.1.0"
 
 # Core
+from brand_os.core.brands import (
+    discover_brands,
+    load_brand_config,
+    load_brand_profile,
+)
 from brand_os.core.identity import (
     BrandProfile,
     Example,
@@ -10,12 +15,29 @@ from brand_os.core.identity import (
     Visual,
     Voice,
 )
-from brand_os.core.brands import (
-    discover_brands,
-    load_brand_config,
-    load_brand_profile,
-)
 from brand_os.core.llm import complete, complete_json, get_provider
+
+# Eval
+from brand_os.eval import (
+    aggregate_learnings,
+    grade_content,
+    heal_content,
+    load_rubric,
+    parse_rubric,
+)
+
+# Intel
+from brand_os.intel import (
+    detect_outliers,
+    extract_hooks,
+    run_intel_pipeline,
+)
+
+# Monitor
+from brand_os.monitor import (
+    generate_report,
+    send_report,
+)
 
 # Persona
 from brand_os.persona import (
@@ -26,21 +48,6 @@ from brand_os.persona import (
     list_personas,
     load_persona,
     save_persona,
-)
-
-# Intel
-from brand_os.intel import (
-    detect_outliers,
-    extract_hooks,
-    run_intel_pipeline,
-)
-
-# Signals
-from brand_os.signals import (
-    append_signals,
-    filter_signals,
-    query_signals,
-    score_relevance,
 )
 
 # Plan
@@ -62,15 +69,6 @@ from brand_os.produce import (
     generate_video,
 )
 
-# Eval
-from brand_os.eval import (
-    aggregate_learnings,
-    grade_content,
-    heal_content,
-    load_rubric,
-    parse_rubric,
-)
-
 # Publish
 from brand_os.publish import (
     add_to_queue,
@@ -79,10 +77,12 @@ from brand_os.publish import (
     remove_from_queue,
 )
 
-# Monitor
-from brand_os.monitor import (
-    generate_report,
-    send_report,
+# Signals
+from brand_os.signals import (
+    append_signals,
+    filter_signals,
+    query_signals,
+    score_relevance,
 )
 
 __all__ = [

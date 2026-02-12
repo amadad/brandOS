@@ -1,10 +1,12 @@
 """Produce CLI commands."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.table import Table
 
 from brand_os.cli_utils import emit
 
@@ -17,11 +19,13 @@ def copy_cmd(
     topic: str = typer.Argument(..., help="Content topic"),
     brand: str | None = typer.Option(None, "--brand", "-b", help="Brand name"),
     platform: str = typer.Option("twitter", "--platform", "-p", help="Target platform"),
+    eval: bool = typer.Option(False, "--eval", help="Evaluate content quality"),
+    heal: bool = typer.Option(False, "--heal", help="Auto-heal content if eval fails"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Generate copy for a platform."""
     from brand_os.core.brands import load_brand_config
-    from brand_os.produce.copy import generate_copy
+    from brand_os.produce.copy import generate_copy, produce_and_eval
 
     voice = None
     hooks = None
@@ -32,8 +36,9 @@ def copy_cmd(
             voice = config.get("voice")
 
             # Load hooks if available
-            from brand_os.core.brands import get_brand_intel_dir
             import json
+
+            from brand_os.core.brands import get_brand_intel_dir
 
             hooks_file = get_brand_intel_dir(brand) / "hooks.json"
             if hooks_file.exists():
@@ -41,15 +46,89 @@ def copy_cmd(
         except ValueError:
             pass
 
-    result = generate_copy(
-        topic=topic,
-        brand=brand,
-        platform=platform,
-        voice=voice,
-        hooks=hooks,
-    )
+    eval = eval or heal
+
+    if eval or heal:
+        result = produce_and_eval(
+            topic=topic,
+            brand=brand,
+            platform=platform,
+            voice=voice,
+            hooks=hooks,
+            eval=eval,
+            heal=heal,
+        )
+    else:
+        result = generate_copy(
+            topic=topic,
+            brand=brand,
+            platform=platform,
+            voice=voice,
+            hooks=hooks,
+        )
+
+    if format == "text":
+        _render_copy_text(result)
+        return
 
     emit(result, format)
+
+
+def _render_copy_text(result: dict) -> None:
+    """Render `produce copy` output in human-readable text mode."""
+    main = result.get("main", "")
+    variants = result.get("variants", [])
+    hashtags = result.get("hashtags", [])
+
+    console.print("[bold]Main[/bold]")
+    console.print(main)
+
+    if variants:
+        console.print("\n[bold]Variants[/bold]")
+        for idx, variant in enumerate(variants, 1):
+            console.print(f"{idx}. {variant}")
+
+    if hashtags:
+        console.print("\n[bold]Hashtags[/bold]")
+        console.print(" ".join(hashtags))
+
+    eval_result = result.get("eval")
+    if not isinstance(eval_result, dict):
+        return
+
+    console.print()
+    table = Table(title="Eval Scores")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("Score", f"{eval_result.get('score', 0.0):.2f}")
+    passed = bool(eval_result.get("passed", False))
+    table.add_row("Passed", "[green]Yes[/green]" if passed else "[red]No[/red]")
+
+    if "original_score" in result:
+        table.add_row("Original Score", f"{result.get('original_score', 0.0):.2f}")
+    if "healed" in result:
+        table.add_row("Healed", "Yes" if result.get("healed") else "No")
+    if "heal_iterations" in result:
+        table.add_row("Heal Iterations", str(result.get("heal_iterations", 0)))
+
+    console.print(table)
+
+    dimension_scores = eval_result.get("dimension_scores", [])
+    if isinstance(dimension_scores, list) and dimension_scores:
+        dim_table = Table(title="Dimension Scores")
+        dim_table.add_column("Dimension")
+        dim_table.add_column("Score")
+        dim_table.add_column("Passed")
+        for dim in dimension_scores:
+            if not isinstance(dim, dict):
+                continue
+            dim_passed = bool(dim.get("passed", False))
+            dim_table.add_row(
+                str(dim.get("name", "")),
+                f"{dim.get('score', 0.0):.2f}",
+                "[green]Yes[/green]" if dim_passed else "[red]No[/red]",
+            )
+        console.print(dim_table)
 
 
 @produce_app.command("thread")
@@ -112,15 +191,19 @@ def video_cmd(
 def explore_cmd(
     topic: str = typer.Argument(..., help="Topic to explore"),
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
-    platforms: str = typer.Option("twitter,linkedin", "--platforms", "-p", help="Platforms (comma-separated)"),
+    platforms: str = typer.Option(
+        "twitter,linkedin", "--platforms", "-p", help="Platforms (comma-separated)"
+    ),
+    heal: bool = typer.Option(False, "--heal", help="Auto-heal content if eval fails"),
     add_to_queue: bool = typer.Option(True, "--queue/--no-queue", help="Add to queue"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Full exploration flow: generate copy for multiple platforms and optionally queue."""
-    from brand_os.core.brands import get_brand_intel_dir, load_brand_config
-    from brand_os.produce.copy import generate_copy
-    from brand_os.produce.queue import enqueue
     import json
+
+    from brand_os.core.brands import get_brand_intel_dir, load_brand_config
+    from brand_os.produce.copy import produce_and_eval
+    from brand_os.produce.queue import enqueue
 
     config = load_brand_config(brand)
     voice = config.get("voice")
@@ -144,19 +227,36 @@ def explore_cmd(
     for platform in platform_list:
         console.print(f"Generating {platform} content...")
 
-        result = generate_copy(
+        result = produce_and_eval(
             topic=topic,
             brand=brand,
             platform=platform,
             voice=voice,
             hooks=hooks,
             learnings=learnings,
+            eval=True,
+            heal=heal,
         )
 
         results.append({"platform": platform, **result})
 
         if add_to_queue and result.get("main"):
-            enqueue(brand, result["main"], platform=platform)
-            console.print(f"  Added to queue")
+            eval_result = result.get("eval", {})
+            score = eval_result.get("score") if isinstance(eval_result, dict) else None
+            passed = (
+                bool(eval_result.get("passed", False)) if isinstance(eval_result, dict) else False
+            )
+            enqueue(
+                brand,
+                result["main"],
+                platform=platform,
+                metadata={"eval_score": score, "eval_passed": passed},
+            )
+            console.print("  Added to queue")
+            if not passed:
+                score_text = f"{score:.2f}" if isinstance(score, (int, float)) else "n/a"
+                console.print(
+                    f"  [yellow]WARNING:[/yellow] Queued content failed eval (score: {score_text})"
+                )
 
     emit(results, format)

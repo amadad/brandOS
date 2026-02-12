@@ -1,10 +1,11 @@
 """Self-healing content loop."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from brand_os.core.llm import complete
-from brand_os.eval.grader import GradeResult, grade_content
+from brand_os.eval.grader import GradeResult, _build_voice_context, grade_content
 from brand_os.eval.rubric import Rubric
 
 
@@ -13,6 +14,7 @@ def heal_content(
     rubric: Rubric | None = None,
     max_iterations: int = 3,
     target_score: float = 0.8,
+    brand: str | None = None,
 ) -> dict[str, Any]:
     """Iteratively improve content until it passes.
 
@@ -30,15 +32,17 @@ def heal_content(
 
     for i in range(max_iterations):
         # Grade current content
-        grade = grade_content(current_content, rubric)
+        grade = grade_content(current_content, rubric, brand=brand)
 
-        history.append({
-            "iteration": i + 1,
-            "content": current_content,
-            "score": grade.overall_score,
-            "passed": grade.passed,
-            "suggestions": grade.suggestions,
-        })
+        history.append(
+            {
+                "iteration": i + 1,
+                "content": current_content,
+                "score": grade.overall_score,
+                "passed": grade.passed,
+                "suggestions": grade.suggestions,
+            }
+        )
 
         # Check if we've reached target
         if grade.overall_score >= target_score and grade.passed:
@@ -51,10 +55,10 @@ def heal_content(
             }
 
         # Generate improved version
-        current_content = _improve_content(current_content, grade)
+        current_content = _improve_content(current_content, grade, rubric=rubric, brand=brand)
 
     # Final grade after all iterations
-    final_grade = grade_content(current_content, rubric)
+    final_grade = grade_content(current_content, rubric, brand=brand)
 
     return {
         "success": final_grade.overall_score >= target_score,
@@ -65,12 +69,19 @@ def heal_content(
     }
 
 
-def _improve_content(content: str, grade: GradeResult) -> str:
+def _improve_content(
+    content: str,
+    grade: GradeResult,
+    rubric: Rubric | None = None,
+    brand: str | None = None,
+) -> str:
     """Improve content based on grade feedback.
 
     Args:
         content: Current content
         grade: Grade result with feedback
+        rubric: Optional evaluation rubric (used for score anchor guidance if provided)
+        brand: Optional brand name (used for brand voice context when supported)
 
     Returns:
         Improved content
@@ -91,28 +102,63 @@ def _improve_content(content: str, grade: GradeResult) -> str:
         if not dim.passed:
             prompt_parts.append(f"- {dim.name}: {dim.feedback}")
 
+    # If we have rubric anchors, include "what good looks like" guidance for failed dimensions.
+    if rubric is not None:
+        rubric_by_name = {d.name: d for d in rubric.dimensions}
+        for dim in grade.dimension_scores:
+            if dim.passed:
+                continue
+            rubric_dim = rubric_by_name.get(dim.name)
+            if rubric_dim is None or not rubric_dim.score_anchors:
+                continue
+            anchor_5 = rubric_dim.score_anchors.get(5)
+            if not anchor_5:
+                continue
+            prompt_parts.extend(
+                [
+                    "",
+                    f"### What good looks like for {dim.name}",
+                    str(anchor_5),
+                ]
+            )
+
     if grade.red_flags_found:
-        prompt_parts.extend([
-            "",
-            "### Red Flags to Fix",
-            *[f"- {rf}" for rf in grade.red_flags_found],
-        ])
+        prompt_parts.extend(
+            [
+                "",
+                "### Red Flags to Fix",
+                *[f"- {rf}" for rf in grade.red_flags_found],
+            ]
+        )
 
     if grade.suggestions:
-        prompt_parts.extend([
-            "",
-            "### Suggestions",
-            *[f"- {s}" for s in grade.suggestions],
-        ])
+        prompt_parts.extend(
+            [
+                "",
+                "### Suggestions",
+                *[f"- {s}" for s in grade.suggestions],
+            ]
+        )
 
-    prompt_parts.extend([
-        "",
-        "Rewrite the content addressing the feedback. Output ONLY the improved content, no explanations.",
-    ])
+    if brand:
+        voice_context = _build_voice_context(brand)
+        if voice_context:
+            prompt_parts.extend(["", voice_context])
+
+    prompt_parts.extend(
+        [
+            "",
+            "Rewrite the content addressing the feedback. Output ONLY the improved content, "
+            "no explanations.",
+        ]
+    )
 
     prompt = "\n".join(prompt_parts)
 
     return complete(
         prompt=prompt,
-        system="You are a content improvement expert. Rewrite content to address feedback while maintaining the original intent and style.",
+        system=(
+            "You are a content improvement expert. Rewrite content to address feedback "
+            "while maintaining the original intent and style."
+        ),
     )

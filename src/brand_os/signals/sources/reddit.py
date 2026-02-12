@@ -10,13 +10,10 @@ import hashlib
 import json
 import logging
 import urllib.request
-from datetime import datetime
-from typing import Any
-
-logger = logging.getLogger(__name__)
 
 from brand_os.signals.schema import Signal, SignalSource, SignalType, Urgency
 
+logger = logging.getLogger(__name__)
 
 # Common subreddits by category for auto-suggestion
 SUBREDDIT_CATEGORIES = {
@@ -146,10 +143,7 @@ class RedditSource:
         """Fetch posts from a subreddit using public JSON API."""
         url = f"https://www.reddit.com/r/{subreddit}/.json?limit={limit}"
 
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": self.user_agent}
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": self.user_agent})
 
         with urllib.request.urlopen(req, timeout=self.timeout) as response:
             data = json.loads(response.read().decode())
@@ -234,6 +228,7 @@ def get_subreddits_for_brand(brand_config: dict, use_discovery: bool = True) -> 
         if has_context:
             try:
                 from brand_os.signals.sources.reddit_discover import discover_subreddits_for_brand
+
                 discovered = discover_subreddits_for_brand(brand_config)
                 if discovered:
                     return discovered[:10]  # Limit to top 10

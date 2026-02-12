@@ -1,4 +1,5 @@
 """Signals CLI commands."""
+
 from __future__ import annotations
 
 import typer
@@ -115,6 +116,7 @@ def discover_subreddits(
         brandos signals discover-subreddits --industry "B2B SaaS" --query "automation"
     """
     from rich.table import Table
+
     from brand_os.signals.sources.reddit_discover import SubredditDiscovery
 
     discovery = SubredditDiscovery()
@@ -122,6 +124,7 @@ def discover_subreddits(
     if brand:
         # Load brand config and discover
         from brand_os.core.config import load_brand_config
+
         config = load_brand_config(brand) or {}
 
         console.print(f"[bold]Discovering subreddits for brand: {brand}[/bold]\n")
@@ -160,7 +163,9 @@ def discover_subreddits(
             f"{sub.subscribers:,}",
             f"{sub.active_users:,}" if sub.active_users else "-",
             f"{sub.relevance_score:.2f}" if sub.relevance_score else "-",
-            (sub.description or sub.title)[:50] + "..." if len(sub.description or sub.title) > 50 else (sub.description or sub.title),
+            (sub.description or sub.title)[:50] + "..."
+            if len(sub.description or sub.title) > 50
+            else (sub.description or sub.title),
         )
 
     console.print(table)

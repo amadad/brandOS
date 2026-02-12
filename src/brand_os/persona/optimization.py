@@ -1,9 +1,10 @@
 """Persona optimization using DSPy and GEPA."""
+
 from __future__ import annotations
 
 from typing import Any
 
-from brand_os.persona.crud import load_persona, save_persona
+from brand_os.persona.crud import load_persona
 
 
 def optimize_persona(
@@ -39,13 +40,16 @@ def _optimize_with_dspy(
     try:
         import dspy
     except ImportError:
-        raise ImportError("dspy required for optimization. Install with: pip install brand-os[optimize]")
+        raise ImportError(
+            "dspy required for optimization. Install with: pip install brand-os[optimize]"
+        )
 
     persona = load_persona(persona_name)
 
     # Define DSPy signature for persona chat
     class PersonaChat(dspy.Signature):
         """Chat as a specific persona."""
+
         persona_traits: str = dspy.InputField(desc="Comma-separated persona traits")
         persona_voice: str = dspy.InputField(desc="Voice tone and style")
         user_input: str = dspy.InputField(desc="User's message")
@@ -75,9 +79,11 @@ def _optimize_with_gepa(
 ) -> dict[str, Any]:
     """Optimize using GEPA (Genetic-Pareto) algorithm."""
     try:
-        import gepa
+        import gepa  # noqa: F401
     except ImportError:
-        raise ImportError("gepa required for GEPA optimization. Install with: pip install brand-os[optimize]")
+        raise ImportError(
+            "gepa required for GEPA optimization. Install with: pip install brand-os[optimize]"
+        )
 
     persona = load_persona(persona_name)
 

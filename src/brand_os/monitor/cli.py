@@ -1,4 +1,5 @@
 """Monitor CLI commands."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -19,7 +20,9 @@ def report(
     send: bool = typer.Option(False, "--send", help="Send via email"),
     to: list[str] = typer.Option([], "--to", "-t", help="Email recipients"),
     output: Path | None = typer.Option(None, "--output", "-o", help="Output file"),
-    format: str = typer.Option("markdown", "--format", "-f", help="Output format: markdown, html, json, yaml"),
+    format: str = typer.Option(
+        "markdown", "--format", "-f", help="Output format: markdown, html, json, yaml"
+    ),
 ) -> None:
     """Generate a brand report."""
     from brand_os.monitor.emailer import send_report
@@ -70,9 +73,9 @@ def analyze(
     format: str = typer.Option("table", "--format", "-f", help="Output format"),
 ) -> None:
     """Analyze brand signals and performance."""
+    from brand_os.core.brands import load_brand_config
     from brand_os.signals.history import get_signal_count, query_signals
     from brand_os.signals.relevance import filter_signals
-    from brand_os.core.brands import load_brand_config
 
     config = load_brand_config(brand)
     signals = query_signals(brand, since=period, limit=200)
@@ -102,6 +105,7 @@ def analyze(
     # Try to load learnings
     try:
         from brand_os.eval.learnings import get_learnings
+
         learnings = get_learnings(brand)
         if learnings:
             console.print("\n[bold]Content Learnings:[/bold]")
@@ -115,9 +119,10 @@ def analyze(
     # Queue status
     try:
         from brand_os.publish.queue import get_queue
+
         pending = len(get_queue(brand, status="pending"))
         posted = len(get_queue(brand, status="posted"))
-        console.print(f"\n[bold]Content Queue:[/bold]")
+        console.print("\n[bold]Content Queue:[/bold]")
         console.print(f"  Pending: {pending}")
         console.print(f"  Posted: {posted}")
     except Exception:

@@ -1,10 +1,10 @@
 """Hook extraction from viral content."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from brand_os.core.llm import complete_json
-
 
 HOOK_SYSTEM = """You are an expert at analyzing viral content patterns.
 Extract the "hooks" - the specific elements that make content engaging.

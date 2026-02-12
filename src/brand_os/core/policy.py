@@ -8,8 +8,7 @@ humans set policies, system operates within them.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +16,7 @@ from brand_os.core.config import utc_now
 from brand_os.core.decision import Decision, DecisionStatus, DecisionType
 
 
-class PolicyVerdict(str, Enum):
+class PolicyVerdict(StrEnum):
     """Result of policy evaluation."""
 
     ALLOW = "allow"  # Execute autonomously
@@ -73,10 +72,12 @@ class BrandPolicy(BaseModel):
     always_allow: list[DecisionType] = Field(default_factory=list)
 
     # Decision types that always require human (never autonomous)
-    always_escalate: list[DecisionType] = Field(default_factory=lambda: [
-        DecisionType.BUDGET_ALLOCATION,
-        DecisionType.ALERT_ESCALATION,
-    ])
+    always_escalate: list[DecisionType] = Field(
+        default_factory=lambda: [
+            DecisionType.BUDGET_ALLOCATION,
+            DecisionType.ALERT_ESCALATION,
+        ]
+    )
 
     # Decision types that are blocked entirely
     always_deny: list[DecisionType] = Field(default_factory=list)
@@ -256,13 +257,13 @@ class PolicyEngine:
         policy: BrandPolicy,
     ) -> PolicyEvaluation:
         """Evaluate decision against a specific rule."""
-        reasons: list[str] = []
         escalate_reasons: list[str] = []
 
         # Confidence check
         if decision.confidence < rule.min_confidence:
             escalate_reasons.append(
-                f"Confidence {decision.confidence:.2f} below rule threshold {rule.min_confidence:.2f}"
+                f"Confidence {decision.confidence:.2f} below rule threshold "
+                f"{rule.min_confidence:.2f}"
             )
 
         # Signal count check
@@ -296,9 +297,7 @@ class PolicyEngine:
         if rule.max_budget is not None:
             budget = decision.proposal.get("budget", 0)
             if budget > rule.max_budget:
-                escalate_reasons.append(
-                    f"Budget ${budget} exceeds limit ${rule.max_budget}"
-                )
+                escalate_reasons.append(f"Budget ${budget} exceeds limit ${rule.max_budget}")
 
         # Keyword escalation
         if rule.escalate_keywords:
@@ -365,7 +364,8 @@ class PolicyEngine:
         """Count recent decisions of the same type."""
         cutoff = utc_now() - timedelta(minutes=minutes)
         return sum(
-            1 for r in recent
+            1
+            for r in recent
             if r.type == decision.type
             and r.created_at > cutoff
             and r.status in (DecisionStatus.EXECUTED, DecisionStatus.APPROVED)

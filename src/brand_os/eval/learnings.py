@@ -1,13 +1,14 @@
 """Learnings aggregation from evaluations."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 from typing import Any
 
+from brand_os.core.brands import get_brand_dir
 from brand_os.core.config import utc_now
 from brand_os.core.llm import complete_json
-from brand_os.core.brands import get_brand_dir
 
 
 def get_eval_log_path(brand: str) -> Path:
@@ -37,6 +38,7 @@ def log_evaluation(
     log_path = get_eval_log_path(brand)
 
     entry = {
+        "brand": brand,
         "timestamp": utc_now().isoformat(),
         "content": content[:500],  # Truncate for storage
         "overall_score": grade_result.get("overall_score"),

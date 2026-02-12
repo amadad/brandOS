@@ -1,4 +1,5 @@
 """Content queue management."""
+
 from __future__ import annotations
 
 import json
