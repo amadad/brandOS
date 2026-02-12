@@ -22,3 +22,7 @@ Result: ✓ Complete
 ### Iteration 5 - 04:08:07
 Task: 2.1 Extend `_build_voice_context()` to accept optional `VoiceExemplars` parameter
 Result: ✓ Complete
+
+### Iteration 6 - 04:08:34
+Task: 2.2 Format exemplars as `### On-Brand Examples` and `### Off-Brand Examples` sections
+Result: ✓ Complete

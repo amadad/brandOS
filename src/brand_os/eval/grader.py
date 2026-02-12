@@ -218,14 +218,28 @@ def _build_voice_context(
     if not bullets:
         return ""
 
-    context = "\n".join(
+    context_parts: list[str] = [
+        f"## Brand Voice Definition ({brand})",
+        *bullets,
+    ]
+
+    if exemplars and exemplars.good_examples:
+        context_parts.extend(["", "### On-Brand Examples"])
+        for example in exemplars.good_examples:
+            context_parts.append(f"> {example}")
+
+    if exemplars and exemplars.bad_examples:
+        context_parts.extend(["", "### Off-Brand Examples"])
+        for example in exemplars.bad_examples:
+            context_parts.append(f"> {example}")
+
+    context_parts.extend(
         [
-            f"## Brand Voice Definition ({brand})",
-            *bullets,
             "",
             "Evaluate the brand_voice dimension against these specific guidelines.",
         ]
     )
+    context = "\n".join(context_parts)
 
     # Keep under 500 characters to avoid prompt bloat.
     if len(context) > 500:
