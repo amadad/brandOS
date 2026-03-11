@@ -1,7 +1,7 @@
 """Report generation."""
+
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -51,12 +51,14 @@ def generate_report(
     # Load signals if not provided
     if signals is None:
         from brand_os.signals.history import query_signals
+
         signals = query_signals(brand, since=period, limit=100)
 
     # Load learnings if available
     learnings = {}
     try:
         from brand_os.eval.learnings import get_learnings
+
         learnings = get_learnings(brand)
     except Exception:
         pass
@@ -65,6 +67,7 @@ def generate_report(
     queue_stats = {}
     try:
         from brand_os.publish.queue import get_queue
+
         pending = len(get_queue(brand, status="pending"))
         posted = len(get_queue(brand, status="posted"))
         queue_stats = {"pending": pending, "posted": posted}
@@ -82,20 +85,24 @@ def generate_report(
         prompt_parts.append(f"- {signal.get('headline', signal.get('title', ''))}")
 
     if learnings:
-        prompt_parts.extend([
-            "",
-            "## Learnings",
-            f"Weak dimensions: {learnings.get('weak_dimensions', [])}",
-            f"Patterns: {learnings.get('patterns', [])[:3]}",
-        ])
+        prompt_parts.extend(
+            [
+                "",
+                "## Learnings",
+                f"Weak dimensions: {learnings.get('weak_dimensions', [])}",
+                f"Patterns: {learnings.get('patterns', [])[:3]}",
+            ]
+        )
 
     if queue_stats:
-        prompt_parts.extend([
-            "",
-            "## Content Queue",
-            f"Pending: {queue_stats.get('pending', 0)}",
-            f"Posted: {queue_stats.get('posted', 0)}",
-        ])
+        prompt_parts.extend(
+            [
+                "",
+                "## Content Queue",
+                f"Pending: {queue_stats.get('pending', 0)}",
+                f"Posted: {queue_stats.get('posted', 0)}",
+            ]
+        )
 
     prompt = "\n".join(prompt_parts)
 
@@ -137,36 +144,44 @@ def format_report_html(report: BrandReport) -> str:
     ]
 
     if report.highlights:
-        html_parts.extend([
-            "<h2>Highlights</h2>",
-            "<ul>",
-            *[f"<li>{h}</li>" for h in report.highlights],
-            "</ul>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Highlights</h2>",
+                "<ul>",
+                *[f"<li>{h}</li>" for h in report.highlights],
+                "</ul>",
+            ]
+        )
 
     if report.metrics:
-        html_parts.extend([
-            "<h2>Metrics</h2>",
-            "<ul>",
-            *[f"<li><strong>{k}:</strong> {v}</li>" for k, v in report.metrics.items()],
-            "</ul>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Metrics</h2>",
+                "<ul>",
+                *[f"<li><strong>{k}:</strong> {v}</li>" for k, v in report.metrics.items()],
+                "</ul>",
+            ]
+        )
 
     if report.actions:
-        html_parts.extend([
-            "<h2>Recommended Actions</h2>",
-            "<ul>",
-            *[f"<li>{a}</li>" for a in report.actions],
-            "</ul>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Recommended Actions</h2>",
+                "<ul>",
+                *[f"<li>{a}</li>" for a in report.actions],
+                "</ul>",
+            ]
+        )
 
     if report.risks:
-        html_parts.extend([
-            "<h2>Risks & Concerns</h2>",
-            "<ul>",
-            *[f"<li>{r}</li>" for r in report.risks],
-            "</ul>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Risks & Concerns</h2>",
+                "<ul>",
+                *[f"<li>{r}</li>" for r in report.risks],
+                "</ul>",
+            ]
+        )
 
     return "\n".join(html_parts)
 
@@ -189,31 +204,39 @@ def format_report_markdown(report: BrandReport) -> str:
     ]
 
     if report.highlights:
-        md_parts.extend([
-            "",
-            "## Highlights",
-            *[f"- {h}" for h in report.highlights],
-        ])
+        md_parts.extend(
+            [
+                "",
+                "## Highlights",
+                *[f"- {h}" for h in report.highlights],
+            ]
+        )
 
     if report.metrics:
-        md_parts.extend([
-            "",
-            "## Metrics",
-            *[f"- **{k}:** {v}" for k, v in report.metrics.items()],
-        ])
+        md_parts.extend(
+            [
+                "",
+                "## Metrics",
+                *[f"- **{k}:** {v}" for k, v in report.metrics.items()],
+            ]
+        )
 
     if report.actions:
-        md_parts.extend([
-            "",
-            "## Recommended Actions",
-            *[f"- {a}" for a in report.actions],
-        ])
+        md_parts.extend(
+            [
+                "",
+                "## Recommended Actions",
+                *[f"- {a}" for a in report.actions],
+            ]
+        )
 
     if report.risks:
-        md_parts.extend([
-            "",
-            "## Risks & Concerns",
-            *[f"- {r}" for r in report.risks],
-        ])
+        md_parts.extend(
+            [
+                "",
+                "## Risks & Concerns",
+                *[f"- {r}" for r in report.risks],
+            ]
+        )
 
     return "\n".join(md_parts)

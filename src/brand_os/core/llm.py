@@ -135,12 +135,12 @@ class AnthropicProvider:
 def _parse_json(text: str, default: dict[str, Any] | None = None) -> dict[str, Any]:
     """Extract JSON from LLM response, handling markdown code blocks."""
     # Try to find JSON in code blocks
-    json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
+    json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
     if json_match:
         text = json_match.group(1)
 
     # Try to find raw JSON object
-    obj_match = re.search(r'\{[\s\S]*\}', text)
+    obj_match = re.search(r"\{[\s\S]*\}", text)
     if obj_match:
         text = obj_match.group(0)
 

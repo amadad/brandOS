@@ -1,4 +1,5 @@
 """Generic web scraping utilities."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -61,9 +62,11 @@ def extract_links(html: str, base_url: str | None = None) -> list[dict[str, str]
         if base_url:
             href = urljoin(base_url, href)
 
-        links.append({
-            "href": href,
-            "text": a.get_text(strip=True),
-        })
+        links.append(
+            {
+                "href": href,
+                "text": a.get_text(strip=True),
+            }
+        )
 
     return links

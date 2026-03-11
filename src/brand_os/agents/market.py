@@ -8,7 +8,6 @@ from brand_os.agents.base import AgentContext, BaseAgent
 from brand_os.core.decision import Decision, DecisionType
 from brand_os.core.llm import acomplete_json
 
-
 ANALYSIS_SYSTEM = """You are a market analyst for brand intelligence.
 Analyze signals for trends, opportunities, and risks.
 Be specific and actionable. Output valid JSON only."""
@@ -115,7 +114,11 @@ class MarketAnalyst(BaseAgent):
                         "trend": trend,
                         "recommended_changes": [],
                     },
-                    rationale=f"Market trend detected: {trend.get('topic', 'N/A')} ({trend.get('direction', '?')}) - {trend.get('evidence', '')}",
+                    rationale=(
+                        "Market trend detected: "
+                        f"{trend.get('topic', 'N/A')} ({trend.get('direction', '?')}) - "
+                        f"{trend.get('evidence', '')}"
+                    ),
                     confidence=analysis.get("confidence", 0.5),
                     signals_used=[s.id for s in context.signals[:5]],
                 )

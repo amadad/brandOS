@@ -1,4 +1,5 @@
 """Signal history storage (JSONL-based)."""
+
 from __future__ import annotations
 
 import json
@@ -126,8 +127,7 @@ def query_signals(
             # Text query filter
             if query_lower:
                 text = " ".join(
-                    str(signal.get(f, ""))
-                    for f in ["headline", "title", "text", "summary"]
+                    str(signal.get(f, "")) for f in ["headline", "title", "text", "summary"]
                 ).lower()
                 if query_lower not in text:
                     continue

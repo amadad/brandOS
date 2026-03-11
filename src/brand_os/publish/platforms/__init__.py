@@ -1,4 +1,5 @@
 """Social platform publishers."""
+
 from typing import Any
 
 # Platform publisher registry
@@ -23,12 +24,14 @@ def list_platforms() -> list[str]:
 # Import and register publishers
 try:
     from brand_os.publish.platforms.twitter import post_tweet
+
     register_publisher("twitter", post_tweet)
 except ImportError:
     pass
 
 try:
     from brand_os.publish.platforms.linkedin import post_linkedin
+
     register_publisher("linkedin", post_linkedin)
 except ImportError:
     pass

@@ -19,13 +19,17 @@ def load_brand(path: str | Path) -> BrandProfile:
     )
 
     style = payload.get("style", {}) or {}
-    visual = Visual(
-        palette=style.get("colors"),
-        typography=style.get("typography"),
-        logo=style.get("logo"),
-        prompt_override=style.get("prompt_override"),
-        raw=style or None,
-    ) if style else None
+    visual = (
+        Visual(
+            palette=style.get("colors"),
+            typography=style.get("typography"),
+            logo=style.get("logo"),
+            prompt_override=style.get("prompt_override"),
+            raw=style or None,
+        )
+        if style
+        else None
+    )
 
     return BrandProfile(
         identity=identity,
@@ -39,8 +43,7 @@ def load_brand(path: str | Path) -> BrandProfile:
 def load_rubric(path: str | Path) -> Rubric:
     payload = _load_yaml(path)
     dimensions = {
-        key: RubricDimension(**value)
-        for key, value in (payload.get("dimensions") or {}).items()
+        key: RubricDimension(**value) for key, value in (payload.get("dimensions") or {}).items()
     }
     red_flags = [RedFlagPattern(**item) for item in payload.get("red_flag_patterns", [])]
     return Rubric(

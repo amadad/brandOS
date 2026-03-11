@@ -1,4 +1,5 @@
 """Persona enrichment via external data sources."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -41,9 +42,12 @@ def _enrich_with_exa(persona: dict[str, Any]) -> dict[str, Any]:
     try:
         from exa_py import Exa
     except ImportError:
-        raise ImportError("exa-py required for Exa enrichment. Install with: pip install brand-os[persona]")
+        raise ImportError(
+            "exa-py required for Exa enrichment. Install with: pip install brand-os[persona]"
+        )
 
     import os
+
     api_key = os.getenv("EXA_API_KEY")
     if not api_key:
         raise ValueError("EXA_API_KEY environment variable required")
@@ -68,10 +72,12 @@ def _enrich_with_exa(persona: dict[str, Any]) -> dict[str, Any]:
     }
 
     for result in results.results:
-        enrichment["sources"].append({
-            "title": result.title,
-            "url": result.url,
-            "excerpt": result.text[:500] if result.text else None,
-        })
+        enrichment["sources"].append(
+            {
+                "title": result.title,
+                "url": result.url,
+                "excerpt": result.text[:500] if result.text else None,
+            }
+        )
 
     return enrichment

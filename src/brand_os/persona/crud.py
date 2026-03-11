@@ -1,4 +1,5 @@
 """Persona CRUD operations."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -19,9 +20,7 @@ def personas_dir() -> Path:
 def list_personas() -> list[str]:
     """List all available personas."""
     pdir = personas_dir()
-    return sorted(
-        p.stem for p in pdir.glob("*.yaml") if not p.name.startswith(".")
-    )
+    return sorted(p.stem for p in pdir.glob("*.yaml") if not p.name.startswith("."))
 
 
 def get_persona_path(name: str) -> Path:

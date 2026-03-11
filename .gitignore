@@ -17,3 +17,14 @@ venv/
 dist/
 build/
 *.egg-info/
+
+# Ralph Wiggum
+logs/ralph/
+state/
+*.tmp
+
+# Night Nurse
+logs/night-nurse.log
+
+# Night Nurse
+.night-nurse/state.json

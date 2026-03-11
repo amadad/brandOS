@@ -1,4 +1,5 @@
 """LinkedIn publishing."""
+
 from __future__ import annotations
 
 import os
@@ -23,7 +24,9 @@ def post_linkedin(
         Result dict with post_id or error
     """
     # Get credentials from env if not provided
-    access_token = credentials.get("access_token") if credentials else os.getenv("LINKEDIN_ACCESS_TOKEN")
+    access_token = (
+        credentials.get("access_token") if credentials else os.getenv("LINKEDIN_ACCESS_TOKEN")
+    )
     person_id = credentials.get("person_id") if credentials else os.getenv("LINKEDIN_PERSON_ID")
 
     if not access_token:

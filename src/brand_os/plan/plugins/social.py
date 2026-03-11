@@ -1,4 +1,5 @@
 """Social media analysis plugin."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -22,7 +23,7 @@ def analyze_social(
     platforms = platforms or ["twitter", "linkedin", "instagram"]
 
     prompt = f"""Analyze social media strategy for: {brand}
-Platforms: {', '.join(platforms)}
+Platforms: {", ".join(platforms)}
 
 Provide:
 - platform_recommendations: recommendations per platform

@@ -1,4 +1,5 @@
 """Intel pipeline orchestration."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -58,6 +59,7 @@ def run_intel_pipeline(
         posts_file = intel_dir / "posts.json"
         if posts_file.exists():
             import json
+
             posts = json.loads(posts_file.read_text())
         else:
             posts = []
@@ -70,6 +72,7 @@ def run_intel_pipeline(
 
     # Save outliers
     import json
+
     outliers_file = intel_dir / "outliers.json"
     outliers_file.write_text(json.dumps(outliers, indent=2, ensure_ascii=False))
 

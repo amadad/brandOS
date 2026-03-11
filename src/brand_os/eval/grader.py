@@ -1,10 +1,14 @@
 """Content grading using LLM-as-judge."""
+
 from __future__ import annotations
 
+import dataclasses
+import re
 from typing import Any
 
 from pydantic import BaseModel, Field
 
+from brand_os.core.brands import get_brand_dir, load_brand_config
 from brand_os.core.llm import complete_json
 from brand_os.eval.rubric import Rubric, get_default_rubric
 
@@ -29,6 +33,102 @@ class GradeResult(BaseModel):
     suggestions: list[str] = Field(default_factory=list)
 
 
+@dataclasses.dataclass
+class VoiceExemplars:
+    """Parsed voice exemplar content from a brand voice guide."""
+
+    good_examples: list[str]
+    bad_examples: list[str]
+    raw_text: str
+
+
+def load_voice_exemplars(brand: str) -> VoiceExemplars | None:
+    """Load and parse brand voice exemplars from references/voice-guide.md."""
+    brand = (brand or "").strip()
+    if not brand:
+        return None
+
+    try:
+        voice_guide_path = get_brand_dir(brand) / "references" / "voice-guide.md"
+        if not voice_guide_path.exists():
+            return None
+        raw_text = voice_guide_path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+    if not raw_text.strip():
+        return None
+
+    heading_re = re.compile(r"^\s{0,3}(#{2,6})\s+(.*?)\s*$")
+    quote_re = re.compile(r"^\s{0,3}>\s?(.*)$")
+
+    good_headers = {"good example", "good examples"}
+    bad_headers = {"what to avoid", "bad example", "bad examples"}
+
+    current_section: str | None = None
+    in_quote = False
+    quote_lines: list[str] = []
+    good_examples: list[str] = []
+    bad_examples: list[str] = []
+
+    def _flush_quote() -> None:
+        nonlocal in_quote, quote_lines
+        if not in_quote:
+            return
+        text = "\n".join(quote_lines).strip()
+        if text:
+            if current_section == "good":
+                good_examples.append(text[:300])
+            elif current_section == "bad":
+                bad_examples.append(text[:300])
+        in_quote = False
+        quote_lines = []
+
+    for line in raw_text.splitlines():
+        heading_match = heading_re.match(line)
+        if heading_match:
+            _flush_quote()
+            level = len(heading_match.group(1))
+            heading = heading_match.group(2).strip().lower()
+            if level == 3 and heading in good_headers:
+                current_section = "good"
+            elif level == 3 and heading in bad_headers:
+                current_section = "bad"
+            elif level <= 3:
+                current_section = None
+            continue
+        elif line.lstrip().startswith("#"):
+            # Treat malformed heading syntax as a hard section break.
+            # This avoids accidentally attributing later blockquotes
+            # to the previous section.
+            _flush_quote()
+            current_section = None
+            continue
+
+        if current_section is None:
+            continue
+
+        quote_match = quote_re.match(line)
+        if quote_match:
+            in_quote = True
+            quote_lines.append(quote_match.group(1).rstrip())
+        else:
+            _flush_quote()
+
+    _flush_quote()
+
+    good_examples = good_examples[:3]
+    bad_examples = bad_examples[:3]
+    if not good_examples and not bad_examples:
+        return None
+
+    return VoiceExemplars(
+        good_examples=good_examples,
+        bad_examples=bad_examples,
+        raw_text=raw_text,
+    )
+
+
 GRADER_SYSTEM = """You are an expert content evaluator.
 Grade the content against each dimension of the rubric.
 
@@ -36,6 +136,10 @@ For each dimension, provide:
 - score: 0.0 to 1.0
 - feedback: specific feedback
 - passed: boolean (score >= threshold)
+
+When score anchors are provided for a dimension, use them to calibrate your scores.
+A score of 0.2 corresponds to anchor level 1, 0.6 to level 3, and 1.0 to level 5.
+Interpolate between anchor levels for intermediate scores.
 
 Also check for red flags and provide overall suggestions.
 
@@ -46,10 +150,177 @@ Output JSON with:
 - suggestions: array of improvement suggestions"""
 
 
+def _build_voice_context(
+    brand: str, exemplars: VoiceExemplars | None = None
+) -> str:
+    """Build a compact brand voice definition for grading prompts.
+
+    Returns an empty string if the brand cannot be loaded or voice is empty.
+    """
+
+    def _clean_str(value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            return value.strip()
+        return str(value).strip()
+
+    def _as_str_list(value: Any) -> list[str]:
+        if not value:
+            return []
+        if isinstance(value, str):
+            s = value.strip()
+            return [s] if s else []
+        if isinstance(value, list):
+            out: list[str] = []
+            for item in value:
+                s = _clean_str(item)
+                if s:
+                    out.append(s)
+            return out
+        s = _clean_str(value)
+        return [s] if s else []
+
+    brand = (brand or "").strip()
+    if not brand:
+        return ""
+
+    try:
+        config = load_brand_config(brand) or {}
+    except Exception:
+        return ""
+
+    if not isinstance(config, dict):
+        return ""
+
+    voice = config.get("voice") or {}
+    if not isinstance(voice, dict):
+        return ""
+
+    tone = _clean_str(voice.get("tone"))
+    vocabulary = _clean_str(voice.get("vocabulary"))
+    patterns = _as_str_list(voice.get("patterns"))
+    rules = _as_str_list(voice.get("rules"))
+    avoid_phrases = _as_str_list(voice.get("avoid_phrases"))
+
+    bullets: list[str] = []
+    if tone:
+        bullets.append(f"- Tone: {tone}")
+    if vocabulary:
+        bullets.append(f"- Vocabulary: {vocabulary}")
+    if patterns:
+        bullets.append(f"- Speech patterns: {', '.join(patterns)}")
+    if rules:
+        bullets.append(f"- Rules: {', '.join(rules)}")
+    if avoid_phrases:
+        bullets.append(f"- Avoid phrases: {', '.join(avoid_phrases)}")
+
+    if not bullets:
+        return ""
+
+    def _truncate_text(text: str, limit: int) -> str:
+        if len(text) <= limit:
+            return text
+        if limit <= 3:
+            return text[:limit]
+        return text[: limit - 3].rstrip() + "..."
+
+    def _truncate_examples(examples: list[str], limit: int) -> list[str]:
+        if limit <= 0:
+            return []
+        out: list[str] = []
+        remaining = limit
+        for example in examples:
+            if remaining <= 0:
+                break
+            example = (example or "").strip()
+            if not example:
+                continue
+            if len(example) <= remaining:
+                out.append(example)
+                remaining -= len(example)
+                continue
+            out.append(_truncate_text(example, remaining))
+            break
+        return out
+
+    def _reduce_examples_from_end(examples: list[str], reduce_by: int) -> list[str]:
+        if reduce_by <= 0 or not examples:
+            return examples
+        out = examples[:]
+        remaining = reduce_by
+        while remaining > 0 and out:
+            last = out[-1]
+            if len(last) <= remaining:
+                remaining -= len(last)
+                out.pop()
+            else:
+                out[-1] = _truncate_text(last, len(last) - remaining)
+                remaining = 0
+        return out
+
+    definition_block = _truncate_text(
+        "\n".join([f"## Brand Voice Definition ({brand})", *bullets]), 500
+    )
+    good_examples = _truncate_examples(
+        exemplars.good_examples if exemplars else [],
+        500,
+    )
+    bad_examples = _truncate_examples(
+        exemplars.bad_examples if exemplars else [],
+        500,
+    )
+
+    def _render_context(
+        definition: str, good: list[str], bad: list[str]
+    ) -> str:
+        context_parts: list[str] = [definition]
+        if good:
+            context_parts.extend(["", "### On-Brand Examples"])
+            for example in good:
+                context_parts.append(f"> {example}")
+        if bad:
+            context_parts.extend(["", "### Off-Brand Examples"])
+            for example in bad:
+                context_parts.append(f"> {example}")
+        context_parts.extend(
+            [
+                "",
+                (
+                    "Evaluate the brand_voice dimension against these specific "
+                    "guidelines and examples."
+                ),
+            ]
+        )
+        return "\n".join(context_parts)
+
+    context = _render_context(definition_block, good_examples, bad_examples)
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        bad_examples = _reduce_examples_from_end(bad_examples, overflow)
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        good_examples = _reduce_examples_from_end(good_examples, overflow)
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    if len(context) > 1500:
+        overflow = len(context) - 1500
+        definition_block = _truncate_text(
+            definition_block,
+            max(0, len(definition_block) - overflow),
+        )
+        context = _render_context(definition_block, good_examples, bad_examples)
+
+    return context[:1500]
+
+
 def grade_content(
     content: str,
     rubric: Rubric | None = None,
     context: str | None = None,
+    brand: str | None = None,
 ) -> GradeResult:
     """Grade content against a rubric.
 
@@ -57,6 +328,7 @@ def grade_content(
         content: Content to grade
         rubric: Evaluation rubric (uses default if not provided)
         context: Optional context (brand, topic, etc.)
+        brand: Optional brand name (used for brand voice context when supported)
 
     Returns:
         GradeResult with scores and feedback
@@ -80,16 +352,29 @@ def grade_content(
         prompt_parts.append(f"  {dim.description}")
         if dim.criteria:
             prompt_parts.append(f"  Criteria: {', '.join(dim.criteria)}")
+        if dim.score_anchors:
+            prompt_parts.append("  Score anchors:")
+            for level in sorted(dim.score_anchors):
+                prompt_parts.append(f"    {level} = {dim.score_anchors[level]}")
 
     if rubric.red_flags:
-        prompt_parts.extend([
-            "",
-            "### Red Flags to Check",
-            *[f"- {rf}" for rf in rubric.red_flags],
-        ])
+        prompt_parts.extend(
+            [
+                "",
+                "### Red Flags to Check",
+                *[f"- {rf}" for rf in rubric.red_flags],
+            ]
+        )
 
     if context:
         prompt_parts.extend(["", "## Context", context])
+
+    if brand:
+        exemplars = load_voice_exemplars(brand)
+        voice_context = _build_voice_context(brand, exemplars)
+        if voice_context:
+            # Append after any existing `context` block (if present).
+            prompt_parts.extend(["", voice_context])
 
     prompt = "\n".join(prompt_parts)
 

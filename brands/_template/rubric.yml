@@ -14,6 +14,15 @@ dimensions:
       - Clear language
       - Logical structure
       - No ambiguity
+    # score_anchors: optional examples of what a 1/3/5 looks like for this dimension.
+    # Customization tips:
+    # - Keep keys as integers 1-5. Most teams define 1, 3, 5 (and optionally add 2 and/or 4 for more granularity).
+    # - Write concrete, observable descriptions (not abstract labels) so the grader can calibrate scoring.
+    # - Anchors map to scoring guidance: 1 ~= 0.2, 3 ~= 0.6, 5 ~= 1.0 (the grader interpolates between them).
+    score_anchors:
+      1: "Confusing structure; ambiguous meaning; reader must re-read to understand"
+      3: "Understandable but with some unclear phrasing or structural issues"
+      5: "Crystal clear; logical flow; every sentence communicates its point on first read"
 
   - name: engagement
     description: "Is the content engaging and compelling?"
@@ -23,6 +32,11 @@ dimensions:
       - Strong hook
       - Maintains interest
       - Call to action
+    # score_anchors: see customization notes above (clarity).
+    score_anchors:
+      1: "Bland, generic content that readers would scroll past; no hook or call to action"
+      3: "Moderately interesting but missing a strong hook or compelling call to action"
+      5: "Immediately grabs attention; maintains interest throughout; compelling call to action"
 
   - name: brand_voice
     description: "Does it match the brand voice?"
@@ -32,6 +46,11 @@ dimensions:
       - Consistent tone
       - Appropriate vocabulary
       - On-brand messaging
+    # score_anchors: see customization notes above (clarity).
+    score_anchors:
+      1: "Contradicts brand tone; uses forbidden vocabulary; feels like a different brand"
+      3: "Generally on-brand but with occasional inconsistencies in tone or word choice"
+      5: "Indistinguishable from the best brand exemplars; perfect tone, vocabulary, and framing"
 
   - name: accuracy
     description: "Is the content factually accurate?"
@@ -41,6 +60,11 @@ dimensions:
       - No false claims
       - Verifiable statements
       - Proper context
+    # score_anchors: see customization notes above (clarity).
+    score_anchors:
+      1: "Contains false or misleading claims; unverifiable statements presented as fact"
+      3: "Mostly accurate but some claims lack specificity or nuance"
+      5: "Every claim is verifiable; precise language; no overstatements or misleading framing"
 
 red_flags:
   - Offensive content

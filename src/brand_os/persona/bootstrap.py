@@ -1,11 +1,11 @@
 """AI-powered persona generation."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from brand_os.core.llm import complete_json
 from brand_os.persona.crud import save_persona
-
 
 BOOTSTRAP_SYSTEM = """You are an expert at creating detailed AI persona definitions.
 Generate a comprehensive persona based on the user's description.

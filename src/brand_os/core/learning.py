@@ -11,17 +11,15 @@ humans approve policy changes.
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, Field
 
 from brand_os.core.config import utc_now
-from brand_os.core.storage import data_dir
 from brand_os.core.decision import Decision, DecisionStatus, DecisionType
+from brand_os.core.storage import data_dir
 
 
 class Outcome(BaseModel):
@@ -189,14 +187,8 @@ class LearningTracker:
         auto_rate = len(auto_executed) / total if total else 0
 
         # Confidence calibration
-        avg_conf_approved = (
-            sum(o.confidence for o in approved) / len(approved)
-            if approved else 0
-        )
-        avg_conf_rejected = (
-            sum(o.confidence for o in rejected) / len(rejected)
-            if rejected else 0
-        )
+        avg_conf_approved = sum(o.confidence for o in approved) / len(approved) if approved else 0
+        avg_conf_rejected = sum(o.confidence for o in rejected) / len(rejected) if rejected else 0
 
         # Recommend threshold between approved and rejected averages
         threshold_rec = None
@@ -212,8 +204,8 @@ class LearningTracker:
                 total_t + 1,
             )
 
-        high_success = [t for t, (s, tot) in type_success.items() if tot >= 5 and s/tot > 0.8]
-        low_success = [t for t, (s, tot) in type_success.items() if tot >= 5 and s/tot < 0.5]
+        high_success = [t for t, (s, tot) in type_success.items() if tot >= 5 and s / tot > 0.8]
+        low_success = [t for t, (s, tot) in type_success.items() if tot >= 5 and s / tot < 0.5]
 
         return LearningMetrics(
             period_start=min(o.created_at for o in outcomes),
@@ -237,7 +229,9 @@ class LearningTracker:
         recs: list[str] = []
 
         if metrics.total_decisions < 10:
-            recs.append("Not enough data yet. Need at least 10 decisions for meaningful recommendations.")
+            recs.append(
+                "Not enough data yet. Need at least 10 decisions for meaningful recommendations."
+            )
             return recs
 
         # Confidence threshold

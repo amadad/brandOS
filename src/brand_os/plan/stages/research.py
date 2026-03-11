@@ -1,4 +1,5 @@
 """Research stage - market research and analysis."""
+
 from __future__ import annotations
 
 from typing import Any

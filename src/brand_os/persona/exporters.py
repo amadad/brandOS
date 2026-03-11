@@ -1,4 +1,5 @@
 """Persona export formats."""
+
 from __future__ import annotations
 
 import json
@@ -59,8 +60,10 @@ def _export_eliza(persona: dict[str, Any]) -> str:
         "voice": persona.get("voice", {}).get("tone", "neutral"),
         "system": build_system_prompt(persona),
         "examples": [
-            {"user": ex.get("user", ex.get("input", "")),
-             "agent": ex.get("assistant", ex.get("output", ""))}
+            {
+                "user": ex.get("user", ex.get("input", "")),
+                "agent": ex.get("assistant", ex.get("output", "")),
+            }
             for ex in persona.get("examples", [])
         ],
     }
@@ -71,13 +74,13 @@ def _export_ollama(persona: dict[str, Any]) -> str:
     """Export as Ollama Modelfile format."""
     system_prompt = build_system_prompt(persona)
     lines = [
-        f'FROM llama3.2',
-        f'',
-        f'PARAMETER temperature 0.7',
-        f'',
-        f'SYSTEM """',
+        "FROM llama3.2",
+        "",
+        "PARAMETER temperature 0.7",
+        "",
+        'SYSTEM """',
         system_prompt,
-        f'"""',
+        '"""',
     ]
     return "\n".join(lines)
 

@@ -1,10 +1,11 @@
 """Campaign persistence."""
+
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Any
-import uuid
 
 from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
@@ -119,13 +120,15 @@ def list_campaigns(limit: int = 20) -> list[dict[str, Any]]:
     for path in sorted(campaigns_dir().glob("*.json"), reverse=True):
         try:
             data = json.loads(path.read_text())
-            campaigns.append({
-                "id": data.get("id"),
-                "brief": data.get("brief", "")[:100],
-                "brand": data.get("brand"),
-                "stages": list(data.get("stages", {}).keys()),
-                "created_at": data.get("created_at"),
-            })
+            campaigns.append(
+                {
+                    "id": data.get("id"),
+                    "brief": data.get("brief", "")[:100],
+                    "brand": data.get("brand"),
+                    "stages": list(data.get("stages", {}).keys()),
+                    "created_at": data.get("created_at"),
+                }
+            )
         except (json.JSONDecodeError, KeyError):
             continue
 

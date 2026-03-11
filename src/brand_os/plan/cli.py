@@ -1,4 +1,5 @@
 """Plan CLI commands."""
+
 from __future__ import annotations
 
 import json
@@ -98,19 +99,22 @@ def run(
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Run full campaign planning pipeline."""
+    from brand_os.plan.stages.activation import activation
+    from brand_os.plan.stages.creative import creative
     from brand_os.plan.stages.research import research
     from brand_os.plan.stages.strategy import strategy
-    from brand_os.plan.stages.creative import creative
-    from brand_os.plan.stages.activation import activation
     from brand_os.plan.store import save_campaign
 
-    console.print(f"[bold]Starting campaign pipeline[/bold]")
+    console.print("[bold]Starting campaign pipeline[/bold]")
     console.print(f"Brief: {brief[:100]}...")
 
     # Research
     console.print("\n[bold cyan]Stage 1: Research[/bold cyan]")
     research_result = research(brief=brief, brand=brand)
-    console.print(f"  Found {len(research_result.insights)} insights, {len(research_result.competitors)} competitors")
+    console.print(
+        f"  Found {len(research_result.insights)} insights, "
+        f"{len(research_result.competitors)} competitors"
+    )
 
     if interactive:
         if not typer.confirm("Continue to strategy?"):
@@ -128,7 +132,9 @@ def run(
     # Creative
     console.print("\n[bold cyan]Stage 3: Creative[/bold cyan]")
     creative_result = creative(strategy_result=strategy_result.model_dump(), brand=brand)
-    console.print(f"  Generated {len(creative_result.headlines)} headlines, {len(creative_result.ctas)} CTAs")
+    console.print(
+        f"  Generated {len(creative_result.headlines)} headlines, {len(creative_result.ctas)} CTAs"
+    )
 
     if interactive:
         if not typer.confirm("Continue to activation?"):
@@ -137,7 +143,10 @@ def run(
     # Activation
     console.print("\n[bold cyan]Stage 4: Activation[/bold cyan]")
     activation_result = activation(creative_result=creative_result.model_dump(), brand=brand)
-    console.print(f"  Planned {len(activation_result.channels)} channels, {len(activation_result.calendar)} calendar items")
+    console.print(
+        f"  Planned {len(activation_result.channels)} channels, "
+        f"{len(activation_result.calendar)} calendar items"
+    )
 
     # Compile results
     full_result = {

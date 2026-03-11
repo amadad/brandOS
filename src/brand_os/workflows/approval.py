@@ -6,7 +6,10 @@ Falls back to manual state management if statemachine not installed.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+import logging
+from typing import Any
+
+import httpx
 
 from brand_os.core.config import utc_now
 from brand_os.core.decision import (
@@ -15,6 +18,8 @@ from brand_os.core.decision import (
     get_decision,
     get_decision_log,
 )
+
+logger = logging.getLogger(__name__)
 
 # Try to import statemachine, fall back to manual implementation
 try:
@@ -110,9 +115,21 @@ if STATEMACHINE_AVAILABLE:
             get_decision_log().update(self.decision)
 
         def _notify(self, message: str) -> None:
-            """Send notification (placeholder for Slack/email integration)."""
-            # TODO: Implement notification via slack-sdk or email
-            pass
+            """Send notification via Slack webhook."""
+            import os
+
+            webhook_url = os.getenv("SLACK_WEBHOOK_URL")
+            if not webhook_url:
+                logger.info("Approval notification: %s", message)
+                return
+            try:
+                httpx.post(
+                    webhook_url,
+                    json={"text": f"[BrandOS] {message}"},
+                    timeout=10,
+                )
+            except Exception:
+                pass  # Best-effort notification
 
 else:
     # Fallback implementation without statemachine dependency
@@ -135,9 +152,7 @@ else:
         def _transition(self, new_status: DecisionStatus) -> None:
             valid = self.VALID_TRANSITIONS.get(self.decision.status, [])
             if new_status not in valid:
-                raise ValueError(
-                    f"Invalid transition: {self.decision.status} -> {new_status}"
-                )
+                raise ValueError(f"Invalid transition: {self.decision.status} -> {new_status}")
             self.decision.status = new_status
             self.decision.updated_at = utc_now()
             get_decision_log().update(self.decision)

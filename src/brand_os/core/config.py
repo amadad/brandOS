@@ -1,8 +1,9 @@
 """Configuration loading and management."""
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,7 @@ def utc_now() -> datetime:
 
     Use this instead of datetime.utcnow() which is deprecated in Python 3.12+.
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class BrandOpsConfig(BaseModel):
@@ -114,6 +115,7 @@ def list_brands() -> list[str]:
         return []
 
     return [
-        d.name for d in brands_dir.iterdir()
+        d.name
+        for d in brands_dir.iterdir()
         if d.is_dir() and (d / "brand.yml").exists() and not d.name.startswith("_")
     ]

@@ -1,9 +1,21 @@
 """Copy generation for social platforms."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from brand_os.core.llm import complete_json
+from brand_os.eval.grader import grade_content
+from brand_os.eval.heal import heal_content
+from brand_os.eval.rubric import Rubric, get_default_rubric
+
+PLATFORM_LIMITS = {
+    "twitter": 280,
+    "threads": 500,
+    "linkedin": 3000,
+    "instagram": 2200,
+    "facebook": 63206,
+}
 
 
 def generate_copy(
@@ -57,9 +69,68 @@ def generate_copy(
 
     return complete_json(
         prompt=prompt,
-        system=f"You are a {platform} content expert. Write engaging, platform-native copy. Output JSON with main (string), variants (list of strings), hashtags (list).",
+        system=(
+            f"You are a {platform} content expert. Write engaging, platform-native copy. "
+            "Output JSON with main (string), variants (list of strings), hashtags (list)."
+        ),
         default=default,
     )
+
+
+def produce_and_eval(
+    topic: str,
+    brand: str | None = None,
+    platform: str = "twitter",
+    hooks: list[dict[str, Any]] | None = None,
+    learnings: list[str] | None = None,
+    voice: dict[str, Any] | None = None,
+    eval: bool = False,
+    heal: bool = False,
+    rubric: Rubric | None = None,
+) -> dict[str, Any]:
+    """Generate content, optionally grade it, and optionally heal failed output."""
+    result = generate_copy(
+        topic=topic,
+        brand=brand,
+        platform=platform,
+        hooks=hooks,
+        learnings=learnings,
+        voice=voice,
+    )
+
+    if not (eval or heal):
+        return result
+
+    rubric_to_use = rubric or get_default_rubric()
+    initial_grade = grade_content(result.get("main", ""), rubric_to_use, brand=brand)
+
+    output: dict[str, Any] = {
+        **result,
+        "eval": {
+            "score": initial_grade.overall_score,
+            "passed": initial_grade.passed,
+            "dimension_scores": [score.model_dump() for score in initial_grade.dimension_scores],
+            "suggestions": initial_grade.suggestions,
+        },
+        "healed": False,
+        "heal_iterations": 0,
+        "original_score": initial_grade.overall_score,
+    }
+
+    if heal and not initial_grade.passed:
+        heal_result = heal_content(
+            result.get("main", ""),
+            rubric=rubric_to_use,
+            target_score=rubric_to_use.pass_threshold,
+            brand=brand,
+        )
+        output["main"] = heal_result.get("final_content", output.get("main", ""))
+        output["eval"]["score"] = heal_result.get("final_score", output["eval"]["score"])
+        output["eval"]["passed"] = heal_result.get("success", output["eval"]["passed"])
+        output["healed"] = True
+        output["heal_iterations"] = heal_result.get("iterations", 0)
+
+    return output
 
 
 def _get_platform_guidelines(platform: str) -> str:
@@ -137,7 +208,7 @@ def generate_carousel_copy(
         List of slide dicts with title and body
     """
     prompt = f"""Write copy for a {slides}-slide carousel about: {topic}
-Brand: {brand or 'N/A'}
+Brand: {brand or "N/A"}
 
 Output JSON with 'slides' array, each with:
 - title: short punchy title (5-8 words max)

@@ -1,4 +1,5 @@
 """Email delivery for reports."""
+
 from __future__ import annotations
 
 import os
@@ -45,12 +46,14 @@ def send_report(
     html_content = format_report_html(report)
 
     try:
-        result = resend.Emails.send({
-            "from": from_email,
-            "to": to,
-            "subject": subject,
-            "html": html_content,
-        })
+        result = resend.Emails.send(
+            {
+                "from": from_email,
+                "to": to,
+                "subject": subject,
+                "html": html_content,
+            }
+        )
 
         return {
             "success": True,

@@ -1,4 +1,5 @@
 """Image generation orchestration."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -26,9 +27,11 @@ def generate_image(
     """
     if provider == "gemini":
         from brand_os.produce.image.providers.gemini import generate_with_gemini
+
         return generate_with_gemini(direction, brand, style_ref, output_path)
     elif provider == "reve":
         from brand_os.produce.image.providers.reve import generate_with_reve
+
         return generate_with_reve(direction, brand, output_path)
     else:
         raise ValueError(f"Unknown image provider: {provider}")

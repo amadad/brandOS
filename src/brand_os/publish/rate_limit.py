@@ -1,14 +1,14 @@
 """Rate limiting for social publishing."""
+
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from brand_os.core.config import utc_now
 from brand_os.core.storage import data_dir
-
 
 # Default rate limits per platform (posts per hour)
 DEFAULT_LIMITS = {
@@ -61,10 +61,7 @@ def can_post(platform: str, brand: str | None = None) -> bool:
     window_start = utc_now() - timedelta(hours=1)
     posts = state[key].get("posts", [])
 
-    recent_posts = [
-        p for p in posts
-        if datetime.fromisoformat(p) > window_start
-    ]
+    recent_posts = [p for p in posts if datetime.fromisoformat(p) > window_start]
 
     limit = DEFAULT_LIMITS.get(platform, 10)
     return len(recent_posts) < limit
@@ -87,10 +84,7 @@ def record_post(platform: str, brand: str | None = None) -> None:
 
     # Clean up old entries (keep last 24 hours)
     cutoff = utc_now() - timedelta(hours=24)
-    state[key]["posts"] = [
-        p for p in state[key]["posts"]
-        if datetime.fromisoformat(p) > cutoff
-    ]
+    state[key]["posts"] = [p for p in state[key]["posts"] if datetime.fromisoformat(p) > cutoff]
 
     save_rate_state(state)
 
@@ -117,10 +111,9 @@ def get_wait_time(platform: str, brand: str | None = None) -> int:
     window_start = utc_now() - timedelta(hours=1)
     posts = state[key].get("posts", [])
 
-    recent_posts = sorted([
-        datetime.fromisoformat(p) for p in posts
-        if datetime.fromisoformat(p) > window_start
-    ])
+    recent_posts = sorted(
+        [datetime.fromisoformat(p) for p in posts if datetime.fromisoformat(p) > window_start]
+    )
 
     if not recent_posts:
         return 0

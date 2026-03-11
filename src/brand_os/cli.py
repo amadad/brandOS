@@ -1,4 +1,5 @@
 """Main CLI entry point for brandos."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,30 +17,35 @@ app = typer.Typer(
 )
 console = Console()
 
-# Import and register subcommand groups
-from brand_os.persona.cli import persona_app
-from brand_os.intel.cli import intel_app
-from brand_os.signals.cli import signals_app
-from brand_os.plan.cli import plan_app
-from brand_os.produce.cli import produce_app
-from brand_os.eval.cli import eval_app
-from brand_os.publish.cli import publish_app, queue_cli_app
-from brand_os.monitor.cli import monitor_app
-from brand_os.loop_cli import loop_app, decision_app, policy_app, learn_app
 
-app.add_typer(persona_app, name="persona")
-app.add_typer(intel_app, name="intel")
-app.add_typer(signals_app, name="signals")
-app.add_typer(plan_app, name="plan")
-app.add_typer(produce_app, name="produce")
-app.add_typer(eval_app, name="eval")
-app.add_typer(publish_app, name="publish")
-app.add_typer(queue_cli_app, name="queue")
-app.add_typer(monitor_app, name="monitor")
-app.add_typer(loop_app, name="loop")
-app.add_typer(decision_app, name="decision")
-app.add_typer(policy_app, name="policy")
-app.add_typer(learn_app, name="learn")
+def _register_subcommands() -> None:
+    # Local imports keep CLI startup fast and avoid import-order lint.
+    from brand_os.eval.cli import eval_app
+    from brand_os.intel.cli import intel_app
+    from brand_os.loop_cli import decision_app, learn_app, loop_app, policy_app
+    from brand_os.monitor.cli import monitor_app
+    from brand_os.persona.cli import persona_app
+    from brand_os.plan.cli import plan_app
+    from brand_os.produce.cli import produce_app
+    from brand_os.publish.cli import publish_app, queue_cli_app
+    from brand_os.signals.cli import signals_app
+
+    app.add_typer(persona_app, name="persona")
+    app.add_typer(intel_app, name="intel")
+    app.add_typer(signals_app, name="signals")
+    app.add_typer(plan_app, name="plan")
+    app.add_typer(produce_app, name="produce")
+    app.add_typer(eval_app, name="eval")
+    app.add_typer(publish_app, name="publish")
+    app.add_typer(queue_cli_app, name="queue")
+    app.add_typer(monitor_app, name="monitor")
+    app.add_typer(loop_app, name="loop")
+    app.add_typer(decision_app, name="decision")
+    app.add_typer(policy_app, name="policy")
+    app.add_typer(learn_app, name="learn")
+
+
+_register_subcommands()
 
 # Brand management commands
 brand_app = typer.Typer(help="Brand management commands.")

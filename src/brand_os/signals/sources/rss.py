@@ -7,14 +7,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime
-from typing import Any
 
 import httpx
 
-logger = logging.getLogger(__name__)
-
 from brand_os.signals.schema import Signal, SignalSource, SignalType, Urgency
+
+logger = logging.getLogger(__name__)
 
 
 class RSSSource:
@@ -80,11 +78,13 @@ class RSSSource:
         import re
 
         # Try RSS format first
-        item_pattern = re.compile(r'<item>(.*?)</item>', re.DOTALL)
-        title_pattern = re.compile(r'<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>', re.DOTALL)
-        link_pattern = re.compile(r'<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</link>', re.DOTALL)
-        desc_pattern = re.compile(r'<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</description>', re.DOTALL)
-        pubdate_pattern = re.compile(r'<pubDate>(.*?)</pubDate>', re.DOTALL)
+        item_pattern = re.compile(r"<item>(.*?)</item>", re.DOTALL)
+        title_pattern = re.compile(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", re.DOTALL)
+        link_pattern = re.compile(r"<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</link>", re.DOTALL)
+        desc_pattern = re.compile(
+            r"<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</description>", re.DOTALL
+        )
+        pubdate_pattern = re.compile(r"<pubDate>(.*?)</pubDate>", re.DOTALL)
 
         for match in item_pattern.finditer(xml):
             item_xml = match.group(1)
@@ -94,19 +94,23 @@ class RSSSource:
             desc_match = desc_pattern.search(item_xml)
             pubdate_match = pubdate_pattern.search(item_xml)
 
-            items.append({
-                "title": title_match.group(1).strip() if title_match else "",
-                "link": link_match.group(1).strip() if link_match else "",
-                "description": desc_match.group(1).strip() if desc_match else "",
-                "pubDate": pubdate_match.group(1).strip() if pubdate_match else "",
-            })
+            items.append(
+                {
+                    "title": title_match.group(1).strip() if title_match else "",
+                    "link": link_match.group(1).strip() if link_match else "",
+                    "description": desc_match.group(1).strip() if desc_match else "",
+                    "pubDate": pubdate_match.group(1).strip() if pubdate_match else "",
+                }
+            )
 
         # Try Atom format if no RSS items found
         if not items:
-            entry_pattern = re.compile(r'<entry>(.*?)</entry>', re.DOTALL)
+            entry_pattern = re.compile(r"<entry>(.*?)</entry>", re.DOTALL)
             atom_link_pattern = re.compile(r'<link[^>]*href=["\']([^"\']+)["\']', re.DOTALL)
-            content_pattern = re.compile(r'<(?:content|summary)[^>]*>(.*?)</(?:content|summary)>', re.DOTALL)
-            updated_pattern = re.compile(r'<updated>(.*?)</updated>', re.DOTALL)
+            content_pattern = re.compile(
+                r"<(?:content|summary)[^>]*>(.*?)</(?:content|summary)>", re.DOTALL
+            )
+            updated_pattern = re.compile(r"<updated>(.*?)</updated>", re.DOTALL)
 
             for match in entry_pattern.finditer(xml):
                 entry_xml = match.group(1)
@@ -116,12 +120,14 @@ class RSSSource:
                 content_match = content_pattern.search(entry_xml)
                 updated_match = updated_pattern.search(entry_xml)
 
-                items.append({
-                    "title": title_match.group(1).strip() if title_match else "",
-                    "link": link_match.group(1).strip() if link_match else "",
-                    "description": content_match.group(1).strip() if content_match else "",
-                    "pubDate": updated_match.group(1).strip() if updated_match else "",
-                })
+                items.append(
+                    {
+                        "title": title_match.group(1).strip() if title_match else "",
+                        "link": link_match.group(1).strip() if link_match else "",
+                        "description": content_match.group(1).strip() if content_match else "",
+                        "pubDate": updated_match.group(1).strip() if updated_match else "",
+                    }
+                )
 
         return items
 
@@ -134,7 +140,8 @@ class RSSSource:
 
         # Strip HTML tags from description
         import re
-        description = re.sub(r'<[^>]+>', '', item.get("description", ""))[:1000]
+
+        description = re.sub(r"<[^>]+>", "", item.get("description", ""))[:1000]
 
         return Signal(
             id=content_hash,

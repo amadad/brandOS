@@ -1,4 +1,5 @@
 """Persona management module - from prsna-cli-tools."""
+
 from brand_os.persona.crud import (
     create_persona,
     delete_persona,

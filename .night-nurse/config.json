@@ -1,0 +1,12 @@
+{
+  "name": "brand-os",
+  "path": "/home/deploy/scty-repos/brand-os",
+  "agents": {
+    "review": "claude",
+    "implement": "codex"
+  },
+  "maxIterations": 25,
+  "priorities": {
+    "sources": ["sentry", "specs", "backlog"]
+  }
+}
