@@ -11,7 +11,8 @@ CLI-first brand operations toolkit with autonomous execution. Unified personas, 
 ```
 src/brand_os/
 ├── cli.py              # Main CLI entry (Typer)
-├── cli_utils.py        # Output formatting helpers
+├── cli_utils.py        # Output formatting helpers (emit, parse_fields, project_fields)
+├── _agent_cli.py       # Agent-friendly CLI helpers (doctor_runner, confirm_or_abort)
 ├── loop.py             # Autonomous execution daemon
 ├── loop_cli.py         # Loop/decision/policy/learn CLI commands
 ├── core/               # Shared utilities
@@ -69,10 +70,20 @@ uv sync --extra workflows    # Phase 1 features
 
 # Development
 uv run brandos --help        # Run CLI
+uv run brandos doctor        # Check required + optional env vars, exits non-zero on required failure
 uv run pytest                # Run tests
 uv run ruff check src/       # Lint
 uv run ruff format src/      # Format
 ```
+
+## Agent-Friendly CLI Standard
+
+brandOS follows the agent-friendly CLI standard (see `~/agents/_rules/general/cli.md`):
+
+- **`brandos doctor`** — health check. Required: one of `GOOGLE_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`, brands dir resolves. Optional advisory: `EXA_API_KEY`, `APIFY_TOKEN`, `RESEND_API_KEY`, `TWITTER_CONSUMER_KEY`, `LINKEDIN_ACCESS_TOKEN`. Writes to stderr, nonzero exit on required failure.
+- **`--fields id,name,score`** — JSON projection on list commands: `intel scrape/outliers/hooks`, `signals fetch/filter/history`, `publish platforms`, `queue list`, `decision list`.
+- **`--dry-run` / `--yes`** — confirm gates on mutating commands: `brand init`, `persona create`, `queue add`, `loop start`. Use `--yes` to skip the prompt in automation, `--dry-run` to preview without mutating.
+- **Not-found errors** include an actionable next step (e.g. "Try 'brandos brand list' to see available brands.").
 
 ## Coding Conventions
 
@@ -161,8 +172,9 @@ The system runs 24/7 in a container, processing signals and executing decisions 
 
 ```bash
 # Start the loop
-brandos loop start                          # All brands
-brandos loop start --brand acme             # Specific brand
+brandos loop start                          # All brands (prompts for confirmation)
+brandos loop start --brand acme --yes       # Specific brand, skip confirmation
+brandos loop start --dry-run                # Preview loop config without starting
 brandos loop test acme                      # Test single cycle
 
 # Docker deployment
@@ -218,6 +230,7 @@ All agent-proposed actions are logged and evaluated against policy before execut
 # View decisions
 brandos decision list
 brandos decision list --brand acme --status pending_review
+brandos decision list --format json --fields id,type,confidence,status   # Projected JSON for agents
 brandos decision pending                    # Quick view of items needing review
 
 # Human review (for escalated decisions)

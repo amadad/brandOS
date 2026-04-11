@@ -37,11 +37,14 @@ uv sync --extra video      # Video generation
 ## Quick Start
 
 ```bash
-# 1. Initialize a new brand
-brandos brand init acme
+# 0. Verify environment
+brandos doctor
+
+# 1. Initialize a new brand (prompts unless --yes)
+brandos brand init acme --yes
 
 # 2. Create a brand persona
-brandos persona create "A friendly B2B SaaS brand focused on developer tools" --as acme-voice
+brandos persona create "A friendly B2B SaaS brand focused on developer tools" --as acme-voice --yes
 
 # 3. Generate content
 brandos produce copy "Launching our new API" --brand acme --platform twitter
@@ -50,9 +53,11 @@ brandos produce copy "Launching our new API" --brand acme --platform twitter
 brandos eval grade brands/acme/rubric.yml "Your draft content here"
 
 # 5. Queue and publish
-brandos queue add "Your approved content" --brand acme --platform twitter
+brandos queue add "Your approved content" --brand acme --platform twitter --yes
 brandos publish post --brand acme
 ```
+
+All mutating commands (`brand init`, `persona create`, `queue add`, `loop start`) support `--dry-run` to preview and `--yes` to skip the confirmation prompt. List commands (`intel scrape/outliers/hooks`, `signals fetch/filter/history`, `publish platforms`, `queue list`, `decision list`) support `--fields id,name,score` for JSON projection.
 
 ## Core Concepts
 
@@ -150,7 +155,8 @@ red_flags:
 ### Brand Management
 
 ```bash
-brandos brand init <name>        # Create new brand from template
+brandos doctor                   # Check env + dependencies (nonzero exit on required failure)
+brandos brand init <name>        # Create new brand from template (--dry-run / --yes)
 brandos brand list               # List all brands
 brandos brand show <name>        # Display brand config
 brandos brand edit <name>        # Open config in editor
@@ -160,7 +166,7 @@ brandos brand validate <name>    # Validate brand configuration
 ### Persona Operations
 
 ```bash
-brandos persona create <desc>    # Generate persona with AI
+brandos persona create <desc>    # Generate persona with AI (--dry-run / --yes)
 brandos persona list             # List available personas
 brandos persona show <name>      # Display persona details
 brandos persona chat <name>      # Interactive conversation
@@ -177,17 +183,18 @@ brandos persona learn <name>     # Generate improvements from history
 ### Competitive Intelligence
 
 ```bash
-brandos intel scrape <brand>     # Scrape competitor content
+brandos intel scrape <brand>     # Scrape competitor content (--fields for JSON projection)
 brandos intel analyze <brand>    # Extract patterns and hooks
-brandos intel hooks <brand>      # List discovered hooks
-brandos intel outliers <brand>   # Find standout content
+brandos intel hooks <brand>      # List discovered hooks (--fields)
+brandos intel outliers <brand>   # Find standout content (--fields)
 ```
 
 ### Signal Monitoring
 
 ```bash
-brandos signals fetch <brand>    # Fetch latest signals
-brandos signals filter <file>    # Filter by keywords
+brandos signals fetch <brand>    # Fetch latest signals (--fields for JSON projection)
+brandos signals filter <file>    # Filter by keywords (--fields)
+brandos signals history <brand>  # Signal history (--fields)
 brandos signals relevance <q>    # Score signal relevance
 ```
 
@@ -222,11 +229,11 @@ brandos eval learnings <brand>          # View accumulated learnings
 ### Publishing
 
 ```bash
-brandos publish post --brand <b>        # Post from queue
-brandos publish platforms               # List platform status
+brandos publish post --brand <b>        # Post from queue (--dry-run already supported)
+brandos publish platforms               # List platform status (--fields for JSON projection)
 
-brandos queue add <content> --brand <b> # Add to queue
-brandos queue list --brand <b>          # View queue
+brandos queue add <content> --brand <b> # Add to queue (--dry-run / --yes)
+brandos queue list --brand <b>          # View queue (--fields for JSON projection)
 brandos queue show <id> --brand <b>     # Item details
 brandos queue clear --brand <b>         # Clear queue
 ```
@@ -250,6 +257,8 @@ brandos config profiles          # Show current configuration
 ```
 src/brand_os/
 ├── cli.py              # Main CLI entry point
+├── cli_utils.py        # Output helpers (emit, parse_fields, project_fields)
+├── _agent_cli.py       # Agent-friendly helpers (doctor_runner, confirm_or_abort)
 ├── loop.py             # Autonomous execution daemon
 ├── loop_cli.py         # Loop/decision/policy CLI
 ├── core/               # Shared utilities
@@ -353,7 +362,8 @@ src/brand_os/
 Check your configuration:
 
 ```bash
-brandos config env
+brandos doctor      # Required + optional providers, nonzero exit on required failure
+brandos config env  # Full env dump
 ```
 
 ## Workflows
@@ -382,8 +392,8 @@ brandos publish post --brand acme --all
 
 ```bash
 # Setup
-brandos brand init newbrand
-brandos persona create "Description of new brand voice" --as newbrand-voice
+brandos brand init newbrand --yes
+brandos persona create "Description of new brand voice" --as newbrand-voice --yes
 
 # Define quality standards
 # Edit brands/newbrand/rubric.yml
@@ -442,9 +452,10 @@ cd brandOS
 # 2. Set API key (required for LLM analysis)
 export GOOGLE_API_KEY=your_gemini_key
 
-# 3. Install and create a brand
+# 3. Install, verify env, and create a brand
 uv sync
-brandos brand init mycompany
+brandos doctor                      # Verify required env (LLM key + brands dir)
+brandos brand init mycompany --yes  # --yes skips the interactive confirm
 
 # 4. Configure the brand
 nano brands/mycompany/brand.yml
@@ -465,15 +476,15 @@ keywords:
 # 5. Discover relevant subreddits (optional)
 brandos signals discover-subreddits --brand mycompany
 
-# 6. Start the loop
-brandos loop start
+# 6. Start the loop (--yes skips confirm; --dry-run previews config)
+brandos loop start --yes
 ```
 
 ### Docker Deployment
 
 ```bash
 # Create brand first (required)
-uv sync && brandos brand init mycompany
+uv sync && brandos brand init mycompany --yes
 # Edit brands/mycompany/brand.yml
 
 # Create .env file
@@ -500,13 +511,15 @@ Each cycle (default: 5 minutes):
 ### Loop Commands
 
 ```bash
-brandos loop start                    # Start autonomous loop
-brandos loop start --brand mycompany  # Single brand only
-brandos loop test mycompany           # Test one cycle
+brandos loop start --yes                      # Start autonomous loop (skip confirm)
+brandos loop start --brand mycompany --yes    # Single brand only
+brandos loop start --dry-run                  # Preview config without starting
+brandos loop test mycompany                   # Test one cycle
 
-brandos decision list                 # View all decisions
-brandos decision pending              # Decisions needing review
-brandos decision approve <id>         # Approve escalated decision
+brandos decision list                         # View all decisions
+brandos decision list --format json --fields id,type,confidence  # Projected JSON
+brandos decision pending                      # Decisions needing review
+brandos decision approve <id>                 # Approve escalated decision
 
 brandos policy show mycompany         # View policy config
 brandos policy test mycompany         # Test policy evaluation
