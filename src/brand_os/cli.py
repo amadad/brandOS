@@ -316,13 +316,14 @@ def doctor() -> None:
         ("LINKEDIN_ACCESS_TOKEN", "optional — LinkedIn publishing"),
     ]
 
-    # Print optional keys as WARN/OK so they don't trigger exit, then run the
-    # required checks through the shared runner.
+    # Print optional keys as PASS/WARN so they don't trigger exit, then run
+    # the required checks through the shared runner. Labels are padded to 4
+    # chars so they line up with the runner's [PASS]/[FAIL] style.
     print("optional providers:", file=sys.stderr)
     width = max(len(name) for name, _ in optional_checks)
     for name, hint in optional_checks:
         present = bool(os.getenv(name))
-        mark = "OK  " if present else "WARN"
+        mark = "PASS" if present else "WARN"
         line = f"  [{mark}] {name.ljust(width)}"
         if not present:
             line += f"  — {hint}"
