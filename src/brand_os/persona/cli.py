@@ -7,6 +7,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from brand_os._agent_cli import confirm_or_abort
 from brand_os.cli_utils import emit
 
 persona_app = typer.Typer(help="Persona management commands.")
@@ -19,10 +20,23 @@ def create(
     name: str | None = typer.Option(None, "--as", "-n", help="Name for the persona"),
     from_person: bool = typer.Option(False, "--from-person", help="Treat description as a real person's name"),
     from_role: bool = typer.Option(False, "--from-role", help="Treat description as a professional role"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview without generating or saving"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
     format: str = typer.Option("yaml", "--format", "-f", help="Output format: json, yaml"),
 ) -> None:
     """Create a new persona using AI generation."""
     from brand_os.persona.crud import create_persona
+
+    target = name or description
+    mode = "from-person" if from_person else ("from-role" if from_role else "free-form")
+    preview = f"name={target}\nmode={mode}\ndescription: {description[:120]}"
+    if not confirm_or_abort(
+        f"Create persona '{target}' (AI generation, writes to disk)",
+        dry_run=dry_run,
+        yes=yes,
+        preview=preview,
+    ):
+        return
 
     persona = create_persona(
         description=description,
@@ -86,7 +100,10 @@ def edit(
 
     path = get_persona_path(name)
     if not path.exists():
-        console.print(f"[red]Persona not found: {name}[/red]")
+        console.print(
+            f"[red]Persona not found: {name}[/red]\n"
+            "Try 'brandos persona list' to see available personas."
+        )
         raise typer.Exit(1)
 
     typer.launch(str(path))
@@ -108,7 +125,10 @@ def delete(
     if delete_persona(name):
         console.print(f"Deleted persona: {name}")
     else:
-        console.print(f"[red]Persona not found: {name}[/red]")
+        console.print(
+            f"[red]Persona not found: {name}[/red]\n"
+            "Try 'brandos persona list' to see available personas."
+        )
         raise typer.Exit(1)
 
 

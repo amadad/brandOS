@@ -6,7 +6,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from brand_os.cli_utils import emit
+from brand_os.cli_utils import emit, parse_fields, project_fields
 
 intel_app = typer.Typer(help="Intelligence gathering commands.")
 console = Console()
@@ -17,6 +17,7 @@ def scrape(
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     platform: str | None = typer.Option(None, "--platform", "-p", help="Specific platform"),
     limit: int = typer.Option(100, "--limit", "-l", help="Max posts to scrape"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Scrape social media posts for a brand."""
@@ -39,7 +40,8 @@ def scrape(
             all_posts.extend(posts)
             console.print(f"  Found {len(posts)} posts")
 
-    emit(all_posts, format)
+    projected = project_fields(all_posts, parse_fields(fields)) if fields else all_posts
+    emit(projected, format)
 
 
 @intel_app.command("outliers")
@@ -47,6 +49,7 @@ def outliers(
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     threshold: float = typer.Option(50.0, "--threshold", "-t", help="Outlier threshold (x median)"),
     input_file: Path | None = typer.Option(None, "--input", "-i", help="Input posts JSON file"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Detect viral/outlier posts."""
@@ -61,7 +64,10 @@ def outliers(
         intel_dir = get_brand_intel_dir(brand)
         posts_file = intel_dir / "posts.json"
         if not posts_file.exists():
-            console.print("[red]No posts found. Run scrape first.[/red]")
+            console.print(
+                "[red]No posts found. Run 'brandos intel scrape --brand "
+                f"{brand}' first.[/red]"
+            )
             raise typer.Exit(1)
         posts = json.loads(posts_file.read_text())
 
@@ -71,7 +77,8 @@ def outliers(
     console.print(f"Found {len(outlier_posts)} outliers from {len(posts)} posts")
     console.print(f"Threshold: {threshold}x median ({stats.get('median_engagement', 0):.0f})")
 
-    emit(outlier_posts, format)
+    projected = project_fields(outlier_posts, parse_fields(fields)) if fields else outlier_posts
+    emit(projected, format)
 
 
 @intel_app.command("hooks")
@@ -79,6 +86,7 @@ def hooks(
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     limit: int = typer.Option(10, "--limit", "-l", help="Max hooks to extract"),
     input_file: Path | None = typer.Option(None, "--input", "-i", help="Input outliers JSON file"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Extract hooks from viral posts."""
@@ -93,14 +101,18 @@ def hooks(
         intel_dir = get_brand_intel_dir(brand)
         outliers_file = intel_dir / "outliers.json"
         if not outliers_file.exists():
-            console.print("[red]No outliers found. Run outliers first.[/red]")
+            console.print(
+                "[red]No outliers found. Run 'brandos intel outliers --brand "
+                f"{brand}' first.[/red]"
+            )
             raise typer.Exit(1)
         outlier_posts = json.loads(outliers_file.read_text())
 
     extracted = extract_hooks(outlier_posts, brand=brand, limit=limit)
     console.print(f"Extracted {len(extracted)} hooks")
 
-    emit(extracted, format)
+    projected = project_fields(extracted, parse_fields(fields)) if fields else extracted
+    emit(projected, format)
 
 
 @intel_app.command("pipeline")

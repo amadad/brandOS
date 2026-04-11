@@ -5,7 +5,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from brand_os.cli_utils import emit
+from brand_os._agent_cli import confirm_or_abort
+from brand_os.cli_utils import emit, parse_fields, project_fields
 
 publish_app = typer.Typer(help="Social publishing commands.")
 queue_cli_app = typer.Typer(help="Queue management commands.")
@@ -72,6 +73,7 @@ def post(
 
 @publish_app.command("platforms")
 def platforms(
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("table", "--format", "-f", help="Output format"),
 ) -> None:
     """List available platforms and their status."""
@@ -104,7 +106,8 @@ def platforms(
             "available": available,
             "rate_status": rate_status,
         }
-        emit(data, format)
+        projected = project_fields(data, parse_fields(fields)) if fields else data
+        emit(projected, format)
 
 
 # Queue subcommands
@@ -113,10 +116,21 @@ def queue_add(
     content: str = typer.Argument(..., help="Content to queue"),
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     platform: str | None = typer.Option(None, "--platform", "-p", help="Target platform"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview without mutating the queue"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Add content to the queue."""
     from brand_os.publish.queue import add_to_queue
+
+    preview = f"brand={brand} platform={platform or '(default)'}\ncontent: {content[:120]}"
+    if not confirm_or_abort(
+        f"Add item to queue for {brand}",
+        dry_run=dry_run,
+        yes=yes,
+        preview=preview,
+    ):
+        return
 
     item = add_to_queue(brand, content, platform=platform)
     console.print(f"Added to queue: {item.id}")
@@ -127,6 +141,7 @@ def queue_add(
 def queue_list(
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     status: str | None = typer.Option(None, "--status", "-s", help="Filter by status"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("table", "--format", "-f", help="Output format"),
 ) -> None:
     """List queued content."""
@@ -153,7 +168,9 @@ def queue_list(
 
         console.print(table)
     else:
-        emit([item.model_dump() for item in items], format)
+        dicts = [item.model_dump() for item in items]
+        projected = project_fields(dicts, parse_fields(fields)) if fields else dicts
+        emit(projected, format)
 
 
 @queue_cli_app.command("show")
@@ -167,7 +184,10 @@ def queue_show(
 
     item = get_queue_item(brand, item_id)
     if not item:
-        console.print(f"[red]Item not found: {item_id}[/red]")
+        console.print(
+            f"[red]Item not found: {item_id}[/red]\n"
+            f"Try 'brandos queue list --brand {brand}' to see available items."
+        )
         raise typer.Exit(1)
 
     emit(item.model_dump(), format)
@@ -188,7 +208,10 @@ def queue_update(
     if item:
         console.print(f"Updated: {item_id}")
     else:
-        console.print(f"[red]Item not found: {item_id}[/red]")
+        console.print(
+            f"[red]Item not found: {item_id}[/red]\n"
+            f"Try 'brandos queue list --brand {brand}' to see available items."
+        )
         raise typer.Exit(1)
 
 
@@ -203,7 +226,10 @@ def queue_remove(
     if remove_from_queue(brand, item_id):
         console.print(f"Removed: {item_id}")
     else:
-        console.print(f"[red]Item not found: {item_id}[/red]")
+        console.print(
+            f"[red]Item not found: {item_id}[/red]\n"
+            f"Try 'brandos queue list --brand {brand}' to see available items."
+        )
         raise typer.Exit(1)
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 import typer
 from rich.console import Console
 
-from brand_os.cli_utils import emit
+from brand_os.cli_utils import emit, parse_fields, project_fields
 
 signals_app = typer.Typer(help="Signal monitoring commands.")
 console = Console()
@@ -17,6 +17,7 @@ def fetch(
     query: str | None = typer.Option(None, "--query", "-q", help="Custom search query"),
     limit: int = typer.Option(20, "--limit", "-l", help="Max signals to fetch"),
     save: bool = typer.Option(True, "--save/--no-save", help="Save to history"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Fetch signals from a source."""
@@ -46,13 +47,15 @@ def fetch(
         count = append_signals(brand, signals)
         console.print(f"Saved {count} new signals to history")
 
-    emit(signals, format)
+    projected = project_fields(signals, parse_fields(fields)) if fields else signals
+    emit(projected, format)
 
 
 @signals_app.command("filter")
 def filter_cmd(
     brand: str = typer.Option(..., "--brand", "-b", help="Brand name"),
     min_score: float = typer.Option(0.1, "--min-score", "-m", help="Minimum relevance score"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Filter signals by relevance."""
@@ -77,7 +80,8 @@ def filter_cmd(
 
     console.print(f"Filtered to {len(filtered)} relevant signals")
 
-    emit(filtered, format)
+    projected = project_fields(filtered, parse_fields(fields)) if fields else filtered
+    emit(projected, format)
 
 
 @signals_app.command("history")
@@ -86,6 +90,7 @@ def history(
     query: str | None = typer.Option(None, "--query", "-q", help="Search query"),
     since: str | None = typer.Option(None, "--since", "-s", help="Date filter (ISO or '7d')"),
     limit: int = typer.Option(50, "--limit", "-l", help="Max results"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Query signal history."""
@@ -97,7 +102,8 @@ def history(
     signals = query_signals(brand, query=query, since=since, limit=limit)
     console.print(f"Returning {len(signals)} signals")
 
-    emit(signals, format)
+    projected = project_fields(signals, parse_fields(fields)) if fields else signals
+    emit(projected, format)
 
 
 @signals_app.command("discover-subreddits")

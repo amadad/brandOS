@@ -50,10 +50,13 @@ app.add_typer(brand_app, name="brand")
 def brand_init(
     name: str = typer.Argument(..., help="Brand name"),
     directory: Path | None = typer.Option(None, "--dir", "-d", help="Brands directory"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing files"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ) -> None:
     """Initialize a new brand from template."""
     import shutil
 
+    from brand_os._agent_cli import confirm_or_abort
     from brand_os.core.config import get_config
 
     config = get_config()
@@ -65,8 +68,19 @@ def brand_init(
     brand_dir = brands_dir / name
 
     if brand_dir.exists():
-        console.print(f"[red]Brand already exists: {name}[/red]")
+        console.print(
+            f"[red]Brand already exists: {name}[/red]\n"
+            "Try 'brandos brand list' to see existing brands."
+        )
         raise typer.Exit(1)
+
+    if not confirm_or_abort(
+        f"Initialize brand '{name}' at {brand_dir}",
+        dry_run=dry_run,
+        yes=yes,
+        preview=f"name={name}\npath={brand_dir}",
+    ):
+        return
 
     # Create from template
     template_dir = brands_dir / "_template"
@@ -154,7 +168,14 @@ def brand_show(
     """Show brand configuration."""
     from brand_os.core.brands import load_brand_config
 
-    config = load_brand_config(name)
+    try:
+        config = load_brand_config(name)
+    except ValueError:
+        console.print(
+            f"[red]Brand not found: {name}[/red]\n"
+            "Try 'brandos brand list' to see available brands."
+        )
+        raise typer.Exit(1)
     emit(config, format)
 
 
@@ -173,7 +194,10 @@ def brand_edit(
             typer.launch(str(config_path))
             return
 
-    console.print(f"[red]Brand config not found: {name}[/red]")
+    console.print(
+        f"[red]Brand config not found: {name}[/red]\n"
+        "Try 'brandos brand list' to see available brands."
+    )
     raise typer.Exit(1)
 
 
@@ -249,6 +273,63 @@ def config_profiles() -> None:
 def version() -> None:
     """Show version information."""
     console.print("brandos v0.1.0")
+
+
+@app.command("doctor")
+def doctor() -> None:
+    """Check environment and dependencies. Exits non-zero on any required failure."""
+    import os
+    import sys
+
+    from brand_os._agent_cli import DoctorCheck, doctor_runner
+
+    def has_any_llm_key() -> bool:
+        return any(
+            os.getenv(k)
+            for k in ("GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY")
+        )
+
+    def brands_dir_resolves() -> bool:
+        from brand_os.core.config import get_brands_dir
+
+        get_brands_dir()  # just make sure it doesn't blow up
+        return True
+
+    required_checks = [
+        DoctorCheck(
+            name="llm provider key",
+            check=has_any_llm_key,
+            hint="set GOOGLE_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY",
+        ),
+        DoctorCheck(
+            name="brands dir resolves",
+            check=brands_dir_resolves,
+            hint="check BRANDOPS_CONFIG or brandos.yml in cwd",
+        ),
+    ]
+
+    optional_checks = [
+        ("EXA_API_KEY", "optional — persona enrich and Exa lookups"),
+        ("APIFY_TOKEN", "optional — intel scrape"),
+        ("RESEND_API_KEY", "optional — email delivery"),
+        ("TWITTER_CONSUMER_KEY", "optional — Twitter publishing"),
+        ("LINKEDIN_ACCESS_TOKEN", "optional — LinkedIn publishing"),
+    ]
+
+    # Print optional keys as WARN/OK so they don't trigger exit, then run the
+    # required checks through the shared runner.
+    print("optional providers:", file=sys.stderr)
+    width = max(len(name) for name, _ in optional_checks)
+    for name, hint in optional_checks:
+        present = bool(os.getenv(name))
+        mark = "OK  " if present else "WARN"
+        line = f"  [{mark}] {name.ljust(width)}"
+        if not present:
+            line += f"  — {hint}"
+        print(line, file=sys.stderr)
+    print("", file=sys.stderr)
+    print("required:", file=sys.stderr)
+    doctor_runner(required_checks, exit_on_fail=True)
 
 
 if __name__ == "__main__":

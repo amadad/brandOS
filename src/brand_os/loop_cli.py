@@ -11,7 +11,8 @@ from brand_os.core.config import utc_now
 from rich.console import Console
 from rich.table import Table
 
-from brand_os.cli_utils import emit
+from brand_os._agent_cli import confirm_or_abort
+from brand_os.cli_utils import emit, parse_fields, project_fields
 
 console = Console()
 
@@ -27,6 +28,8 @@ def loop_start(
     brands: list[str] | None = typer.Option(None, "--brand", "-b", help="Brands to process"),
     interval: int = typer.Option(300, "--interval", "-i", help="Signal fetch interval (seconds)"),
     foreground: bool = typer.Option(True, "--foreground", "-f", help="Run in foreground"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview loop configuration without starting"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ) -> None:
     """Start the autonomous loop.
 
@@ -39,6 +42,16 @@ def loop_start(
         brandos loop start --interval 60
     """
     from brand_os.loop import AutonomousLoop, LoopConfig, LoopEvent
+
+    brand_list = ", ".join(brands) if brands else "all"
+    preview = f"brands={brand_list}\ninterval={interval}s\nforeground={foreground}"
+    if not confirm_or_abort(
+        "Start the autonomous loop (will execute decisions per policy)",
+        dry_run=dry_run,
+        yes=yes,
+        preview=preview,
+    ):
+        return
 
     config = LoopConfig(
         brands=brands or [],
@@ -112,7 +125,10 @@ def loop_test(
     # Load brand config
     config = load_brand_config(brand)
     if not config:
-        console.print(f"[red]Brand not found: {brand}[/red]")
+        console.print(
+            f"[red]Brand not found: {brand}[/red]\n"
+            "Try 'brandos brand list' to see available brands."
+        )
         raise typer.Exit(1)
 
     console.print("[green]✓[/green] Brand config loaded")
@@ -152,6 +168,7 @@ def decision_list(
     brand: str | None = typer.Option(None, "--brand", "-b", help="Filter by brand"),
     status: str | None = typer.Option(None, "--status", "-s", help="Filter by status"),
     limit: int = typer.Option(20, "--limit", "-n", help="Max results"),
+    fields: str | None = typer.Option(None, "--fields", help="Comma-separated field projection for JSON output"),
     format: str = typer.Option("table", "--format", "-f", help="Output format"),
 ) -> None:
     """List decisions with optional filters.
@@ -195,7 +212,9 @@ def decision_list(
 
         console.print(table)
     else:
-        emit([d.model_dump() for d in decisions], format)
+        dicts = [d.model_dump() for d in decisions]
+        projected = project_fields(dicts, parse_fields(fields)) if fields else dicts
+        emit(projected, format)
 
 
 @decision_app.command("show")
@@ -208,7 +227,10 @@ def decision_show(
 
     decision = get_decision(decision_id)
     if not decision:
-        console.print(f"[red]Decision not found: {decision_id}[/red]")
+        console.print(
+            f"[red]Decision not found: {decision_id}[/red]\n"
+            "Try 'brandos decision list' or 'brandos decision pending' to see available decisions."
+        )
         raise typer.Exit(1)
 
     emit(decision.model_dump(), format)
@@ -231,7 +253,10 @@ def decision_approve(
 
     decision = get_decision(decision_id)
     if not decision:
-        console.print(f"[red]Decision not found: {decision_id}[/red]")
+        console.print(
+            f"[red]Decision not found: {decision_id}[/red]\n"
+            "Try 'brandos decision list' or 'brandos decision pending' to see available decisions."
+        )
         raise typer.Exit(1)
 
     if decision.status != DecisionStatus.PENDING_REVIEW:
@@ -264,7 +289,10 @@ def decision_reject(
 
     decision = get_decision(decision_id)
     if not decision:
-        console.print(f"[red]Decision not found: {decision_id}[/red]")
+        console.print(
+            f"[red]Decision not found: {decision_id}[/red]\n"
+            "Try 'brandos decision list' or 'brandos decision pending' to see available decisions."
+        )
         raise typer.Exit(1)
 
     decision.status = DecisionStatus.REJECTED
